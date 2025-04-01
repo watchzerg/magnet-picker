@@ -73,38 +73,44 @@ export const MagnetList: React.FC<MagnetListProps> = ({
                     清空所有
                 </button>
             </div>
-            <div className="magnet-list">
+            <div className="magnet-list space-y-2">
                 {currentMagnets.map((magnet) => (
-                    <div key={magnet.hash} className="magnet-item">
-                        <div className="magnet-item-header">
-                            <div className="magnet-item-title">
-                                {magnet.fileName || '未知文件名'}
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <div className="magnet-item-hash">
-                                    哈希值: {(magnet.hash || '').slice(0, 6)}...
+                    <div key={magnet.hash} className="magnet-item bg-white p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex flex-col">
+                            <div className="flex-1 min-w-0">
+                                <div className="mb-1">
+                                    <span className="font-medium block" title={magnet.fileName || '未知文件名'}>
+                                        {(magnet.fileName || '未知文件名').slice(0, 30)}{(magnet.fileName || '').length > 30 ? '...' : ''}
+                                    </span>
                                 </div>
-                                <button
-                                    onClick={() => onDeleteMagnet(magnet.hash)}
-                                    className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                                >
-                                    删除
-                                </button>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                                        <span>大小: {formatFileSize(magnet.fileSize || '0')}</span>
+                                        <span>发布日期: {magnet.date || '未知'}</span>
+                                        <span>保存时间: {formatDate(magnet.saveTime || new Date().toISOString())}</span>
+                                        <span className="font-mono text-gray-500" title={magnet.hash || ''}>
+                                            Hash: {(magnet.hash || '').slice(0, 12)}...
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <a
+                                            href={magnet.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm"
+                                        >
+                                            复制链接
+                                        </a>
+                                        <button
+                                            onClick={() => onDeleteMagnet(magnet.hash)}
+                                            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm"
+                                        >
+                                            删除
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div className="magnet-item-details">
-                            <span>大小: {formatFileSize(magnet.fileSize || '0')}</span>
-                            <span>发布日期: {magnet.date || '未知'}</span>
-                            <span>保存时间: {formatDate(magnet.saveTime || new Date().toISOString())}</span>
-                        </div>
-                        <a
-                            href={magnet.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-2 inline-block text-blue-500 hover:text-blue-700"
-                        >
-                            复制磁力链接
-                        </a>
                     </div>
                 ))}
             </div>
