@@ -3,7 +3,7 @@ const path = require('path');
 module.exports = {
   mode: 'production',
   entry: {
-    'content/content': './src/content/content.ts',
+    'content/content': './src/content/content.tsx',
     'background/background': './src/background/background.ts',
     'popup/popup': './src/popup/popup.ts',
     'options/options': './src/options/options.tsx',

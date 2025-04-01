@@ -1,9 +1,14 @@
 /// <reference types="chrome"/>
 
 import { MagnetInfo } from '../types/magnet';
+import { createRoot } from 'react-dom/client';
+import { MagnetPanel } from '../components/MagnetPanel';
 
 class MagnetPicker {
   private button: HTMLButtonElement | null = null;
+  private panelContainer: HTMLDivElement | null = null;
+  private root: any = null;
+  private isPanelVisible: boolean = false;
 
   constructor() {
     console.log('MagnetPicker: 初始化');
@@ -14,6 +19,7 @@ class MagnetPicker {
     if (this.isValidPage()) {
       console.log('MagnetPicker: 有效页面，创建按钮');
       this.createFloatingButton();
+      this.createPanelContainer();
     } else {
       console.log('MagnetPicker: 无效页面，URL:', window.location.href);
     }
@@ -34,6 +40,113 @@ class MagnetPicker {
       this.parseMagnets();
     });
     document.body.appendChild(this.button);
+    console.log('MagnetPicker: 浮动按钮已创建');
+  }
+
+  private createPanelContainer(): void {
+    console.log('MagnetPicker: 开始创建面板容器');
+    
+    // 移除已存在的面板容器
+    const existingContainer = document.getElementById('magnet-picker-panel');
+    if (existingContainer) {
+      console.log('MagnetPicker: 移除已存在的面板容器');
+      existingContainer.remove();
+    }
+
+    // 创建新的面板容器
+    this.panelContainer = document.createElement('div');
+    this.panelContainer.id = 'magnet-picker-panel';
+    this.panelContainer.style.position = 'fixed';
+    this.panelContainer.style.top = '0';
+    this.panelContainer.style.right = '0';
+    this.panelContainer.style.zIndex = '999999';
+    this.panelContainer.style.display = 'block';
+    this.panelContainer.style.width = '100%';
+    this.panelContainer.style.height = '100%';
+    this.panelContainer.style.pointerEvents = 'none';
+    
+    // 创建一个内部容器用于实际内容
+    const innerContainer = document.createElement('div');
+    innerContainer.style.position = 'absolute';
+    innerContainer.style.top = '20px';
+    innerContainer.style.right = '20px';
+    innerContainer.style.width = '360px';
+    innerContainer.style.maxHeight = '60vh';
+    innerContainer.style.overflow = 'auto';
+    innerContainer.style.pointerEvents = 'auto';
+    innerContainer.style.backgroundColor = '#ffffff';
+    innerContainer.style.borderRadius = '12px';
+    innerContainer.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.15)';
+    innerContainer.style.padding = '16px';
+    innerContainer.style.fontSize = '14px';
+    
+    this.panelContainer.appendChild(innerContainer);
+    document.body.appendChild(this.panelContainer);
+    
+    // 创建 React 根节点
+    this.root = createRoot(innerContainer);
+    console.log('MagnetPicker: 面板容器已创建并添加到页面');
+  }
+
+  private showPanel(magnets: MagnetInfo[]): void {
+    console.log('MagnetPicker: 准备显示面板');
+    if (!this.panelContainer || !this.root) {
+      console.error('MagnetPicker: 面板容器或根节点不存在，重新创建');
+      this.createPanelContainer();
+    }
+
+    // 设置面板可见状态
+    this.isPanelVisible = true;
+
+    const handleClose = () => {
+      if (!this.isPanelVisible) return;
+      console.log('MagnetPicker: 关闭面板');
+      this.isPanelVisible = false;
+      this.root.render(null);
+      if (this.panelContainer) {
+        this.panelContainer.style.display = 'none';
+      }
+    };
+
+    // 添加点击事件监听器到 document
+    const handleDocumentClick = (e: MouseEvent) => {
+      // 如果点击的是按钮，不关闭面板
+      if (this.button && this.button.contains(e.target as Node)) {
+        return;
+      }
+      
+      // 如果点击的是面板内部，不关闭面板
+      if (this.panelContainer && this.panelContainer.contains(e.target as Node)) {
+        return;
+      }
+
+      console.log('MagnetPicker: 点击面板外部，关闭面板');
+      handleClose();
+      document.removeEventListener('click', handleDocumentClick);
+    };
+
+    // 延迟添加事件监听器，避免立即触发
+    setTimeout(() => {
+      document.addEventListener('click', handleDocumentClick);
+      console.log('MagnetPicker: 添加了点击事件监听器');
+    }, 100);
+
+    // 确保面板容器可见
+    if (this.panelContainer) {
+      this.panelContainer.style.display = 'block';
+      console.log('MagnetPicker: 设置面板容器为可见');
+    }
+
+    console.log('MagnetPicker: 渲染面板组件');
+    this.root.render(
+      <MagnetPanel 
+        magnets={magnets} 
+        onClose={() => {
+          handleClose();
+          document.removeEventListener('click', handleDocumentClick);
+        }} 
+      />
+    );
   }
 
   private async parseMagnets(): Promise<void> {
@@ -78,13 +191,15 @@ class MagnetPicker {
 
       console.log('MagnetPicker: 解析完成，找到磁力链接数:', magnets.length);
       if (magnets.length > 0) {
+        // 保存磁力链接
         chrome.runtime.sendMessage({
           type: 'SAVE_MAGNETS',
           data: magnets
         }, (response) => {
           console.log('MagnetPicker: 保存结果:', response);
           if (response?.success) {
-            this.showSuccessMessage(`成功保存 ${magnets.length} 个磁力链接`);
+            // 显示信息面板
+            this.showPanel(magnets);
           } else {
             this.showErrorMessage('保存失败，请重试');
           }
@@ -125,15 +240,8 @@ class MagnetPicker {
     });
   }
 
-  private showSuccessMessage(message: string): void {
-    const toast = document.createElement('div');
-    toast.className = 'magnet-picker-toast magnet-picker-toast-success';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-  }
-
   private showErrorMessage(message: string): void {
+    console.error('MagnetPicker: 显示错误消息:', message);
     const toast = document.createElement('div');
     toast.className = 'magnet-picker-toast magnet-picker-toast-error';
     toast.textContent = message;
