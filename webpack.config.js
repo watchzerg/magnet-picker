@@ -6,6 +6,7 @@ module.exports = {
     'content/content': './src/content/content.ts',
     'background/background': './src/background/background.ts',
     'popup/popup': './src/popup/popup.ts',
+    'options/options': './src/options/options.tsx',
   },
   output: {
     filename: '[name].js',
@@ -17,6 +18,24 @@ module.exports = {
         test: /\.tsx?$/,
         use: 'ts-loader',
         exclude: /node_modules/,
+      },
+      {
+        test: /\.css$/,
+        use: [
+          'style-loader',
+          'css-loader',
+          {
+            loader: 'postcss-loader',
+            options: {
+              postcssOptions: {
+                plugins: [
+                  'tailwindcss',
+                  'autoprefixer',
+                ],
+              },
+            },
+          },
+        ],
       },
     ],
   },
