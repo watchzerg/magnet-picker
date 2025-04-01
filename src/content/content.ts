@@ -1,6 +1,6 @@
 /// <reference types="chrome"/>
 
-import { MagnetInfo } from '../types';
+import { MagnetInfo } from '../types/magnet';
 
 class MagnetPicker {
   private button: HTMLButtonElement | null = null;
@@ -58,11 +58,17 @@ class MagnetPicker {
           const hdTag = firstCell.querySelector('.btn-primary.disabled');
           
           if (magnetLink) {
+            const magnetUrl = magnetLink.getAttribute('href') || '';
+            const hashMatch = magnetUrl.match(/btih:([A-Fa-f0-9]{40})/);
+            const hash = hashMatch ? hashMatch[1].toUpperCase() : '';
+            
             const magnetInfo: MagnetInfo = {
-              url: magnetLink.getAttribute('href') || '',
+              url: magnetUrl,
               fileName: `${magnetLink.textContent?.trim() || ''}${hdTag ? ' [HD]' : ''}`,
               fileSize: cells[1].textContent?.trim() || '',
-              date: cells[2].textContent?.trim() || ''
+              date: cells[2].textContent?.trim() || '',
+              hash: hash,
+              saveTime: new Date().toISOString()
             };
             console.log('MagnetPicker: 解析到磁力链接:', magnetInfo);
             magnets.push(magnetInfo);

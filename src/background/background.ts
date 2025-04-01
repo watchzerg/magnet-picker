@@ -1,6 +1,7 @@
 /// <reference types="chrome"/>
 
-import { Message, MagnetInfo } from '../types';
+import { Message } from '../types';
+import { MagnetInfo } from '../types/magnet';
 
 console.log('Background: 后台脚本已加载');
 
@@ -43,9 +44,22 @@ chrome.runtime.onMessage.addListener((
 async function saveMagnets(magnets: MagnetInfo[]): Promise<void> {
   try {
     const { magnets: existingMagnets = [] } = await chrome.storage.local.get('magnets');
-    const updatedMagnets = [...existingMagnets, ...magnets];
+    
+    // 创建现有磁力链接的哈希集合
+    const existingHashes = new Set(existingMagnets.map((m: MagnetInfo) => m.hash));
+    
+    // 过滤掉已存在的磁力链接
+    const newMagnets = magnets.filter(magnet => !existingHashes.has(magnet.hash));
+    
+    // 如果没有新的磁力链接，直接返回
+    if (newMagnets.length === 0) {
+      console.log('Background: 所有磁力链接已存在，无需保存');
+      return;
+    }
+    
+    const updatedMagnets = [...existingMagnets, ...newMagnets];
     await chrome.storage.local.set({ magnets: updatedMagnets });
-    console.log('Background: 保存完成，总数:', updatedMagnets.length);
+    console.log('Background: 保存完成，新增:', newMagnets.length, '总数:', updatedMagnets.length);
   } catch (error) {
     console.error('Background: 保存出错:', error);
     throw error;

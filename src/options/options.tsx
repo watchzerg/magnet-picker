@@ -46,26 +46,44 @@ const OptionsPage: React.FC = () => {
 
     useEffect(() => {
         console.log('OptionsPage useEffect running');
-        const loadMagnets = async () => {
-            try {
-                console.log('Loading magnets from storage...');
-                const magnetList = await getMagnetsFromStorage();
-                // 调试：检查第一个磁力链接的数据格式
-                if (magnetList.length > 0) {
-                    console.log('First magnet data format:', JSON.stringify(magnetList[0], null, 2));
-                }
-                console.log('Loaded magnets:', magnetList);
-                const sortedMagnets = sortMagnetsBySize(magnetList);
-                setMagnets(sortedMagnets);
-            } catch (error) {
-                console.error('加载磁力链接失败:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         loadMagnets();
     }, []);
+
+    const loadMagnets = async () => {
+        try {
+            console.log('Loading magnets from storage...');
+            const magnetList = await getMagnetsFromStorage();
+            if (magnetList.length > 0) {
+                console.log('First magnet data format:', JSON.stringify(magnetList[0], null, 2));
+            }
+            console.log('Loaded magnets:', magnetList);
+            const sortedMagnets = sortMagnetsBySize(magnetList);
+            setMagnets(sortedMagnets);
+        } catch (error) {
+            console.error('加载磁力链接失败:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteMagnet = async (hash: string) => {
+        try {
+            const updatedMagnets = magnets.filter(m => m.hash !== hash);
+            await chrome.storage.local.set({ magnets: updatedMagnets });
+            setMagnets(updatedMagnets);
+        } catch (error) {
+            console.error('删除磁力链接失败:', error);
+        }
+    };
+
+    const handleClearAll = async () => {
+        try {
+            await chrome.storage.local.set({ magnets: [] });
+            setMagnets([]);
+        } catch (error) {
+            console.error('清空磁力链接失败:', error);
+        }
+    };
 
     if (loading) {
         return (
@@ -87,6 +105,8 @@ const OptionsPage: React.FC = () => {
                 currentPage={currentPage}
                 itemsPerPage={ITEMS_PER_PAGE}
                 onPageChange={setCurrentPage}
+                onDeleteMagnet={handleDeleteMagnet}
+                onClearAll={handleClearAll}
             />
         </div>
     );
