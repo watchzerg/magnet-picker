@@ -43,11 +43,44 @@ const OptionsPage: React.FC = () => {
     const [magnets, setMagnets] = useState<MagnetInfo[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(true);
+    const [autoRefresh, setAutoRefresh] = useState(false);
 
     useEffect(() => {
         console.log('OptionsPage useEffect running');
         loadMagnets();
+        
+        // 监听storage变化
+        const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+            if (changes.magnets) {
+                console.log('Storage changed, reloading magnets...');
+                loadMagnets();
+            }
+        };
+
+        chrome.storage.onChanged.addListener(handleStorageChange);
+
+        return () => {
+            chrome.storage.onChanged.removeListener(handleStorageChange);
+        };
     }, []);
+
+    // 自动刷新定时器
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        
+        if (autoRefresh) {
+            timer = setInterval(() => {
+                console.log('Auto refreshing magnets...');
+                loadMagnets();
+            }, 5000); // 每5秒刷新一次
+        }
+
+        return () => {
+            if (timer) {
+                clearInterval(timer);
+            }
+        };
+    }, [autoRefresh]);
 
     const loadMagnets = async () => {
         try {
@@ -95,10 +128,19 @@ const OptionsPage: React.FC = () => {
 
     return (
         <div className="container">
-            <h1 className="text-2xl font-bold mb-6">Magnet Picker 设置</h1>
-            <div className="tabs">
-                <div className="tab active">磁力链接浏览</div>
-                <div className="tab">选取规则配置</div>
+            <div className="flex justify-between items-center mb-4">
+                <h1 className="text-2xl font-bold">磁力链接管理</h1>
+                <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={autoRefresh}
+                            onChange={(e) => setAutoRefresh(e.target.checked)}
+                            className="form-checkbox h-5 w-5 text-blue-600"
+                        />
+                        <span>自动刷新</span>
+                    </label>
+                </div>
             </div>
             <MagnetList
                 magnets={magnets}
