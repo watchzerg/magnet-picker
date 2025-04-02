@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { MagnetInfo } from '../types/magnet';
 import { getMagnetsFromStorage, sortMagnetsBySize } from '../utils/magnet';
 import { MagnetList } from '../components/magnet/MagnetList';
+import RuleList from '../components/rule/RuleList';
 import './options.css';
 
 console.log('Options script loaded');
@@ -38,18 +39,17 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
     }
 }
 
-const OptionsPage: React.FC = () => {
-    console.log('OptionsPage component rendering');
+// 磁力链接管理标签页组件
+const MagnetManagementTab: React.FC = () => {
     const [magnets, setMagnets] = useState<MagnetInfo[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(true);
     const [autoRefresh, setAutoRefresh] = useState(false);
 
     useEffect(() => {
-        console.log('OptionsPage useEffect running');
+        console.log('MagnetManagementTab useEffect running');
         loadMagnets();
         
-        // 监听storage变化
         const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
             if (changes.magnets) {
                 console.log('Storage changed, reloading magnets...');
@@ -64,7 +64,6 @@ const OptionsPage: React.FC = () => {
         };
     }, []);
 
-    // 自动刷新定时器
     useEffect(() => {
         let timer: NodeJS.Timeout;
         
@@ -72,7 +71,7 @@ const OptionsPage: React.FC = () => {
             timer = setInterval(() => {
                 console.log('Auto refreshing magnets...');
                 loadMagnets();
-            }, 5000); // 每5秒刷新一次
+            }, 5000);
         }
 
         return () => {
@@ -99,37 +98,16 @@ const OptionsPage: React.FC = () => {
         }
     };
 
-    const handleDeleteMagnet = async (hash: string) => {
-        try {
-            const updatedMagnets = magnets.filter(m => m.hash !== hash);
-            await chrome.storage.local.set({ magnets: updatedMagnets });
-            setMagnets(updatedMagnets);
-        } catch (error) {
-            console.error('删除磁力链接失败:', error);
-        }
-    };
-
-    const handleClearAll = async () => {
-        try {
-            await chrome.storage.local.set({ magnets: [] });
-            setMagnets([]);
-        } catch (error) {
-            console.error('清空磁力链接失败:', error);
-        }
-    };
-
     if (loading) {
         return (
-            <div className="container">
-                <div className="text-center py-8">加载中...</div>
-            </div>
+            <div className="text-center py-8">加载中...</div>
         );
     }
 
     return (
-        <div className="container">
+        <div>
             <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold">磁力链接管理</h1>
+                <h2 className="text-xl font-semibold">磁力链接管理</h2>
                 <div className="flex items-center gap-4">
                     <label className="flex items-center gap-2">
                         <input
@@ -147,9 +125,63 @@ const OptionsPage: React.FC = () => {
                 currentPage={currentPage}
                 itemsPerPage={ITEMS_PER_PAGE}
                 onPageChange={setCurrentPage}
-                onDeleteMagnet={handleDeleteMagnet}
-                onClearAll={handleClearAll}
+                onDeleteMagnet={async (hash) => {
+                    try {
+                        const updatedMagnets = magnets.filter(m => m.hash !== hash);
+                        await chrome.storage.local.set({ magnets: updatedMagnets });
+                        setMagnets(updatedMagnets);
+                    } catch (error) {
+                        console.error('删除磁力链接失败:', error);
+                    }
+                }}
+                onClearAll={async () => {
+                    try {
+                        await chrome.storage.local.set({ magnets: [] });
+                        setMagnets([]);
+                    } catch (error) {
+                        console.error('清空磁力链接失败:', error);
+                    }
+                }}
             />
+        </div>
+    );
+};
+
+const OptionsPage: React.FC = () => {
+    const [activeTab, setActiveTab] = useState<'management' | 'rules'>('management');
+
+    return (
+        <div className="container mx-auto px-4 py-8">
+            <h1 className="text-3xl font-bold mb-8">Magnet Picker</h1>
+            
+            <div className="border-b border-gray-200 mb-6">
+                <nav className="-mb-px flex space-x-8">
+                    <button
+                        onClick={() => setActiveTab('management')}
+                        className={`${
+                            activeTab === 'management'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                    >
+                        磁力链接管理
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('rules')}
+                        className={`${
+                            activeTab === 'rules'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                    >
+                        磁链保存规则
+                    </button>
+                </nav>
+            </div>
+
+            <div className="mt-6">
+                {activeTab === 'management' ? <MagnetManagementTab /> : <RuleList />}
+            </div>
         </div>
     );
 };

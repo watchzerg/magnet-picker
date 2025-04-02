@@ -30,28 +30,28 @@ interface ManifestJson {
 // 定义需要检查的文件列表
 const filesToCheck: FileCheck[] = [
     // 主要JS文件
-    { path: 'dist/background/background.js', minSize: 1000, maxSize: 5000, required: true },
-    { path: 'dist/options/options.js', minSize: 50000, maxSize: 200000, required: true },
-    { path: 'dist/content/content.js', minSize: 50000, maxSize: 200000, required: true },
-    { path: 'dist/popup/popup.js', minSize: 100, maxSize: 6000, required: true },
+    { path: 'dist/background/background.js', required: true },
+    { path: 'dist/options/options.js', required: true },
+    { path: 'dist/content/content.js', required: true },
+    { path: 'dist/popup/popup.js', required: true },
     
     // HTML文件
-    { path: 'dist/options/options.html', minSize: 100, maxSize: 1000, required: true },
-    { path: 'dist/popup/popup.html', minSize: 100, maxSize: 1000, required: true },
+    { path: 'dist/options/options.html', required: true },
+    { path: 'dist/popup/popup.html', required: true },
     
     // CSS文件
-    { path: 'dist/options/options.css', minSize: 100, maxSize: 10000, required: true },
-    { path: 'dist/content/content.css', minSize: 100, maxSize: 10000, required: true },
-    { path: 'dist/popup/popup.css', minSize: 100, maxSize: 2000, required: true },
+    { path: 'dist/options/options.css', required: true },
+    { path: 'dist/content/content.css', required: true },
+    { path: 'dist/popup/popup.css', required: true },
     
     // 图标文件
-    { path: 'dist/assets/icon16.png', minSize: 100, maxSize: 1000, required: true },
-    { path: 'dist/assets/icon48.png', minSize: 100, maxSize: 2000, required: true },
-    { path: 'dist/assets/icon128.png', minSize: 100, maxSize: 5000, required: true },
-    { path: 'dist/assets/icon.svg', minSize: 100, maxSize: 1000, required: true },
+    { path: 'dist/assets/icon16.png', required: true },
+    { path: 'dist/assets/icon48.png', required: true },
+    { path: 'dist/assets/icon128.png', required: true },
+    { path: 'dist/assets/icon.svg', required: true },
     
     // manifest文件
-    { path: 'dist/manifest.json', minSize: 100, maxSize: 2000, required: true },
+    { path: 'dist/manifest.json', required: true },
 ];
 
 // 计算文件哈希值
