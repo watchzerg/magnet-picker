@@ -88,7 +88,7 @@ class MagnetPicker {
     console.log('MagnetPicker: 面板容器已创建并添加到页面');
   }
 
-  private showPanel(magnets: MagnetInfo[]): void {
+  private showPanel(magnets: MagnetInfo[], savedMagnets: MagnetInfo[]): void {
     console.log('MagnetPicker: 准备显示面板');
     if (!this.panelContainer || !this.root) {
       console.error('MagnetPicker: 面板容器或根节点不存在，重新创建');
@@ -137,10 +137,11 @@ class MagnetPicker {
       console.log('MagnetPicker: 设置面板容器为可见');
     }
 
-    console.log('MagnetPicker: 渲染面板组件');
+    console.log('MagnetPanel: 渲染面板组件');
     this.root.render(
       <MagnetPanel 
         magnets={magnets} 
+        savedMagnets={savedMagnets}
         onClose={() => {
           handleClose();
           document.removeEventListener('click', handleDocumentClick);
@@ -191,15 +192,19 @@ class MagnetPicker {
 
       console.log('MagnetPicker: 解析完成，找到磁力链接数:', magnets.length);
       if (magnets.length > 0) {
+        // 只保存前3个磁力链接
+        const magnetsToSave = magnets.slice(0, 3);
+        console.log('MagnetPicker: 准备保存前3个磁力链接');
+        
         // 保存磁力链接
         chrome.runtime.sendMessage({
           type: 'SAVE_MAGNETS',
-          data: magnets
+          data: magnetsToSave
         }, (response) => {
           console.log('MagnetPicker: 保存结果:', response);
           if (response?.success) {
-            // 显示信息面板
-            this.showPanel(magnets);
+            // 显示信息面板，传入所有磁力链接和已保存的磁力链接
+            this.showPanel(magnets, magnetsToSave);
           } else {
             this.showErrorMessage('保存失败，请重试');
           }

@@ -94,6 +94,89 @@
   }
 }
 
+/* 磁力链接项样式 */
+.magnet-item {
+  padding: 8px 16px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+}
+
+.magnet-item-saved {
+  background-color: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.magnet-item-unsaved {
+  background-color: rgba(243, 244, 246, 1);
+  border: 1px solid rgba(229, 231, 235, 1);
+}
+
+.magnet-item-saved:hover {
+  background-color: rgba(34, 197, 94, 0.15);
+}
+
+.magnet-item-unsaved:hover {
+  background-color: rgba(243, 244, 246, 0.8);
+}
+
+.magnet-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.magnet-item-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.magnet-item-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+  background-color: rgba(34, 197, 94, 0.1);
+  color: rgb(22, 163, 74);
+  margin-left: 8px;
+}
+
+.magnet-item-download {
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.magnet-item-download-saved {
+  color: rgb(22, 163, 74);
+  background-color: rgba(34, 197, 94, 0.1);
+}
+
+.magnet-item-download-saved:hover {
+  background-color: rgba(34, 197, 94, 0.2);
+}
+
+.magnet-item-download-unsaved {
+  color: rgb(59, 130, 246);
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.magnet-item-download-unsaved:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
 /* 暗色模式支持 */
 @media (prefers-color-scheme: dark) {
   .magnet-picker-button {
@@ -110,5 +193,126 @@
 
   #magnet-picker-panel ::-webkit-scrollbar-thumb:hover {
     background-color: rgba(156, 163, 175, 0.5);
+  }
+
+  .magnet-item-saved {
+    background-color: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.3);
+  }
+
+  .magnet-item-unsaved {
+    background-color: rgba(31, 41, 55, 0.5);
+    border-color: rgba(75, 85, 99, 0.5);
+  }
+
+  .magnet-item-title {
+    color: #f3f4f6;
+  }
+
+  .magnet-item-info {
+    color: #9ca3af;
+  }
+
+  .magnet-item-badge {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: rgb(134, 239, 172);
+  }
+
+  .magnet-item-download-saved {
+    color: rgb(134, 239, 172);
+    background-color: rgba(34, 197, 94, 0.2);
+  }
+
+  .magnet-item-download-saved:hover {
+    background-color: rgba(34, 197, 94, 0.3);
+  }
+
+  .magnet-item-download-unsaved {
+    color: rgb(147, 197, 253);
+    background-color: rgba(59, 130, 246, 0.2);
+  }
+
+  .magnet-item-download-unsaved:hover {
+    background-color: rgba(59, 130, 246, 0.3);
+  }
+}
+
+/* 面板基础样式 */
+.magnet-panel {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.magnet-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.magnet-panel-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.magnet-panel-close {
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease-in-out;
+}
+
+.magnet-panel-close:hover {
+  color: #374151;
+  background-color: #f3f4f6;
+}
+
+.magnet-panel-content {
+  padding: 16px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.magnet-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.magnet-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 暗色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .magnet-panel {
+    background-color: #1f2937;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  }
+
+  .magnet-panel-header {
+    border-bottom-color: #374151;
+  }
+
+  .magnet-panel-title {
+    color: #f3f4f6;
+  }
+
+  .magnet-panel-close {
+    color: #9ca3af;
+  }
+
+  .magnet-panel-close:hover {
+    color: #d1d5db;
+    background-color: #374151;
   }
 } 
