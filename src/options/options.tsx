@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MagnetInfo } from '../types/magnet';
 import { getMagnetsFromStorage, sortMagnetsBySize } from '../utils/magnet';
-import { MagnetList } from '../components/MagnetList';
+import { MagnetList } from '../components/magnet/MagnetList';
 import './options.css';
 
 console.log('Options script loaded');
