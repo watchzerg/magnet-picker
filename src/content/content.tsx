@@ -4,7 +4,7 @@ import { MagnetInfo } from '../types/magnet';
 import { createRoot } from 'react-dom/client';
 import { MagnetPanel } from '../components/MagnetPanel';
 import { PageStateManager } from '../utils/pageStateManager';
-import { parseFileSize, sortMagnetsBySize } from '../utils/magnet';
+import { parseFileSize, selectMagnetsByScore, sortMagnetsByScore } from '../utils/magnet';
 
 class MagnetPicker {
   private button: HTMLButtonElement | null = null;
@@ -135,14 +135,11 @@ class MagnetPicker {
 
       console.log('MagnetPicker: 解析完成，找到磁力链接数:', magnets.length);
       if (magnets.length > 0) {
-        // 按文件大小排序（从大到小）
-        const sortedMagnets = sortMagnetsBySize(magnets);
-
         // 检查是否需要执行默认保存
         if (!this.pageStateManager.hasDefaultSaved()) {
-          // 保存前3个最大的文件
-          const magnetsToSave = sortedMagnets.slice(0, 3);
-          console.log('MagnetPicker: 准备保存前3个最大的磁力链接');
+          // 使用新的评分筛选机制选择磁力链接
+          const magnetsToSave = selectMagnetsByScore(magnets);
+          console.log('MagnetPicker: 准备保存筛选后的磁力链接:', magnetsToSave);
           
           // 保存磁力链接
           chrome.runtime.sendMessage({
@@ -155,14 +152,14 @@ class MagnetPicker {
               await this.pageStateManager.addSavedMagnets(magnetsToSave.map((m: MagnetInfo) => m.hash));
               await this.pageStateManager.setDefaultSaved();
               // 显示信息面板
-              this.showPanel(sortedMagnets);
+              this.showPanel(magnets);
             } else {
               this.showErrorMessage('保存失败，请重试');
             }
           });
         } else {
           // 直接显示面板，使用现有状态
-          this.showPanel(sortedMagnets);
+          this.showPanel(magnets);
         }
       } else {
         console.log('MagnetPicker: 未找到磁力链接');
@@ -288,10 +285,14 @@ class MagnetPicker {
     const savedMagnetHashes = this.pageStateManager.getSavedMagnets();
     const savedMagnets = magnets.filter(m => savedMagnetHashes.includes(m.hash));
 
+    // 按评分排序磁力链接
+    const sortedMagnets = sortMagnetsByScore(magnets);
+    console.log('MagnetPicker: 按评分排序后的磁力链接:', sortedMagnets);
+
     console.log('MagnetPanel: 渲染面板组件');
     this.root.render(
       <MagnetPanel 
-        magnets={magnets} 
+        magnets={sortedMagnets} 
         savedMagnets={savedMagnets}
         onClose={() => {
           handleClose();
