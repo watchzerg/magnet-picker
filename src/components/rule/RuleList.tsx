@@ -93,35 +93,40 @@ const RuleList: React.FC<RuleListProps> = ({ rules, onChange }) => {
                     type: RuleType.FILE_SIZE,
                     condition: 'greater',
                     threshold: 5 * 1024 * 1024 * 1024, // 5GB
-                    scoreMultiplier: 1.0
+                    scoreMultiplier: 1.0,
+                    stopOnMatch: false
                 };
                 break;
             case RuleType.FILENAME_CONTAINS:
                 config = {
                     type: RuleType.FILENAME_CONTAINS,
                     keywords: [],
-                    scoreMultiplier: 1.0
+                    scoreMultiplier: 1.0,
+                    stopOnMatch: false
                 };
                 break;
             case RuleType.FILENAME_SUFFIX:
                 config = {
                     type: RuleType.FILENAME_SUFFIX,
                     suffixes: [],
-                    scoreMultiplier: 1.0
+                    scoreMultiplier: 1.0,
+                    stopOnMatch: false
                 };
                 break;
             case RuleType.FILE_EXTENSION:
                 config = {
                     type: RuleType.FILE_EXTENSION,
                     extensions: [],
-                    scoreMultiplier: 1.0
+                    scoreMultiplier: 1.0,
+                    stopOnMatch: false
                 };
                 break;
             case RuleType.FILENAME_REGEX:
                 config = {
                     type: RuleType.FILENAME_REGEX,
                     pattern: '',
-                    scoreMultiplier: 1.0
+                    scoreMultiplier: 1.0,
+                    stopOnMatch: false
                 };
                 break;
             default:
@@ -132,7 +137,6 @@ const RuleList: React.FC<RuleListProps> = ({ rules, onChange }) => {
             id: Date.now().toString(),
             type,
             enabled: false,
-            stopOnMatch: false,
             order: rules.length,
             config
         };

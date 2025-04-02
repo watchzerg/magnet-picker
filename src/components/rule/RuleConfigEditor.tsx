@@ -176,17 +176,36 @@ const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({ type, config, onCha
                     ))}
                 </select>
                 {isCustomScoreMultiplier && (
-                    <div className="relative w-24">
-                        <input
-                            type="text"
-                            value={customScoreMultiplier}
-                            onChange={(e) => handleCustomScoreMultiplierChange(e.target.value)}
-                            className="w-full px-2 py-1 text-sm border rounded pr-6"
-                            placeholder="输入数字"
-                        />
-                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500">%</span>
-                    </div>
+                    <input
+                        type="text"
+                        value={customScoreMultiplier}
+                        onChange={(e) => handleCustomScoreMultiplierChange(e.target.value)}
+                        className="w-20 px-2 py-1 text-sm border rounded"
+                        placeholder="输入百分比"
+                    />
                 )}
+            </div>
+        </div>
+    );
+
+    const renderStopOnMatch = () => (
+        <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700 min-w-[4rem]">
+                中止规则
+            </label>
+            <div className="flex items-center gap-2">
+                <input
+                    type="checkbox"
+                    checked={config.stopOnMatch}
+                    onChange={(e) => onChange({
+                        ...config,
+                        stopOnMatch: e.target.checked
+                    })}
+                    className="w-4 h-4"
+                />
+                <span className="text-sm text-gray-500">
+                    匹配后停止执行后续规则
+                </span>
             </div>
         </div>
     );
@@ -300,6 +319,7 @@ const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({ type, config, onCha
                         </div>
                     </div>
                     {renderScoreMultiplier()}
+                    {renderStopOnMatch()}
                 </div>
             );
         }
@@ -324,6 +344,7 @@ const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({ type, config, onCha
                         </div>
                     </div>
                     {renderScoreMultiplier()}
+                    {renderStopOnMatch()}
                 </div>
             );
         }
@@ -348,6 +369,7 @@ const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({ type, config, onCha
                         </div>
                     </div>
                     {renderScoreMultiplier()}
+                    {renderStopOnMatch()}
                 </div>
             );
         }
@@ -423,6 +445,7 @@ const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({ type, config, onCha
                         </div>
                     </div>
                     {renderScoreMultiplier()}
+                    {renderStopOnMatch()}
                 </div>
             );
         }
@@ -466,6 +489,7 @@ const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({ type, config, onCha
                         </div>
                     </div>
                     {renderScoreMultiplier()}
+                    {renderStopOnMatch()}
                 </div>
             );
         }

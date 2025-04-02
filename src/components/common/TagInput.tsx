@@ -22,6 +22,11 @@ const TagInput: React.FC<TagInputProps> = ({ tags, onChange, placeholder = '输�
         }
     };
 
+    const handleBlur = () => {
+        // 当输入框失去焦点时，清除未完成的输入
+        setInputValue('');
+    };
+
     const removeTag = (tagToRemove: string) => {
         onChange(tags.filter(tag => tag !== tagToRemove));
     };
@@ -47,6 +52,7 @@ const TagInput: React.FC<TagInputProps> = ({ tags, onChange, placeholder = '输�
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onBlur={handleBlur}
                 placeholder={placeholder}
                 className="flex-1 min-w-[120px] outline-none bg-transparent"
             />

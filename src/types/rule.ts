@@ -11,6 +11,7 @@ export enum RuleType {
 interface BaseRuleConfig {
     type: RuleType;
     scoreMultiplier: number; // 匹配后的得分系数（1.5 表示 150%）
+    stopOnMatch: boolean;    // 匹配后是否中止后续规则
 }
 
 // 文件体积规则配置
@@ -57,7 +58,6 @@ export interface MagnetRule {
     id: string;           // 规则唯一标识
     type: RuleType;       // 规则类型
     enabled: boolean;     // 是否启用
-    stopOnMatch: boolean; // 匹配后是否中止后续规则
     order: number;        // 规则顺序
     config: RuleConfig;   // 规则配置
 }
