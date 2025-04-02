@@ -21,7 +21,16 @@ const isValidMagnet = (magnet: any): magnet is MagnetInfo => {
 
     // 设置默认值
     magnet.fileName = magnet.fileName || '未知文件名';
-    magnet.fileSize = magnet.fileSize || '0';
+    
+    // 处理 fileSize
+    if (typeof magnet.fileSize === 'string') {
+        // 如果是字符串，尝试解析
+        magnet.fileSize = parseFileSize(magnet.fileSize);
+    } else if (typeof magnet.fileSize !== 'number') {
+        // 如果既不是字符串也不是数字，设为0
+        magnet.fileSize = 0;
+    }
+    
     magnet.date = magnet.date || new Date().toISOString().split('T')[0];
 
     return true;
@@ -80,9 +89,8 @@ export const parseFileSize = (sizeStr: string): number => {
     }
 };
 
-export const formatFileSize = (size: string): string => {
+export const formatFileSize = (bytes: number): string => {
     try {
-        const bytes = parseFileSize(size);
         const units = ['B', 'KB', 'MB', 'GB', 'TB'];
         let value = bytes;
         let unitIndex = 0;
@@ -104,16 +112,7 @@ export const sortMagnetsBySize = (magnets: MagnetInfo[]): MagnetInfo[] => {
         console.warn('sortMagnetsBySize received non-array input:', magnets);
         return [];
     }
-    return [...magnets].sort((a, b) => {
-        try {
-            const sizeA = parseFileSize(a.fileSize);
-            const sizeB = parseFileSize(b.fileSize);
-            return sizeB - sizeA;
-        } catch (error) {
-            console.error('Error comparing magnet sizes:', error);
-            return 0;
-        }
-    });
+    return [...magnets].sort((a, b) => b.fileSize - a.fileSize);
 };
 
 export const getMagnetsFromStorage = async (): Promise<MagnetInfo[]> => {
@@ -125,8 +124,16 @@ export const getMagnetsFromStorage = async (): Promise<MagnetInfo[]> => {
         // 如果数据是直接存储的数组
         if (Array.isArray(result.magnets)) {
             console.log('Found array of magnets:', result.magnets);
-            const validMagnets = result.magnets.filter(isValidMagnet);
+            console.log('First magnet before validation:', result.magnets[0]);
+            const validMagnets = result.magnets.filter(magnet => {
+                const isValid = isValidMagnet(magnet);
+                if (!isValid) {
+                    console.warn('Invalid magnet:', magnet);
+                }
+                return isValid;
+            });
             console.log('Valid magnets from array:', validMagnets);
+            console.log('First valid magnet:', validMagnets[0]);
             return validMagnets;
         }
 
@@ -134,8 +141,16 @@ export const getMagnetsFromStorage = async (): Promise<MagnetInfo[]> => {
         if (result.magnets && typeof result.magnets === 'object') {
             console.log('Found object of magnets:', result.magnets);
             const magnets = Object.values(result.magnets);
-            const validMagnets = magnets.filter(isValidMagnet);
+            console.log('First magnet before validation:', magnets[0]);
+            const validMagnets = magnets.filter(magnet => {
+                const isValid = isValidMagnet(magnet);
+                if (!isValid) {
+                    console.warn('Invalid magnet:', magnet);
+                }
+                return isValid;
+            });
             console.log('Valid magnets from object:', validMagnets);
+            console.log('First valid magnet:', validMagnets[0]);
             return validMagnets;
         }
 

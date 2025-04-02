@@ -1,7 +1,7 @@
 export interface MagnetInfo {
     url: string;      // Magnet链接
     fileName: string; // 文件名
-    fileSize: string; // 文件大小
+    fileSize: number; // 文件大小（字节）
     date: string;     // 发布日期
     hash: string;     // Magnet哈希值
     saveTime: string; // 保存时间

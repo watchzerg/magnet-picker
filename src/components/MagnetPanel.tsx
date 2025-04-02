@@ -1,5 +1,6 @@
 import React from 'react';
 import { MagnetInfo } from '../types/magnet';
+import { formatFileSize } from '../utils/magnet';
 
 interface MagnetPanelProps {
   magnets: MagnetInfo[];
@@ -84,7 +85,7 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
                   )}
                 </div>
                 <div className="magnet-item-info">
-                  <span>{magnet.fileSize}</span>
+                  <span>{formatFileSize(magnet.fileSize)}</span>
                   <span>•</span>
                   <span>Hash: {magnet.hash.slice(0, 6)}</span>
                   <a

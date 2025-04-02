@@ -9,7 +9,7 @@ const isValidMagnet = (magnet: any): magnet is MagnetInfo => {
         typeof magnet === 'object' &&
         typeof magnet.hash === 'string' &&
         typeof magnet.fileName === 'string' &&
-        typeof magnet.fileSize === 'string' &&
+        typeof magnet.fileSize === 'number' &&
         typeof magnet.date === 'string' &&
         typeof magnet.url === 'string'
     );
@@ -79,7 +79,7 @@ export const MagnetList: React.FC<MagnetListProps> = ({
             ['文件名', '大小', 'Magnet链接', '发布日期', '保存时间'],
             ...validMagnets.map(magnet => [
                 magnet.fileName,
-                magnet.fileSize,
+                formatFileSize(magnet.fileSize),
                 `magnet:?xt=urn:btih:${magnet.hash}`,
                 magnet.date,
                 new Date().toLocaleString('zh-CN')
@@ -138,7 +138,7 @@ export const MagnetList: React.FC<MagnetListProps> = ({
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4 text-sm text-gray-600">
-                                        <span>大小: {formatFileSize(magnet.fileSize || '0')}</span>
+                                        <span>大小: {formatFileSize(magnet.fileSize)}</span>
                                         <span>发布日期: {magnet.date || '未知'}</span>
                                         <span>保存时间: {formatDate(magnet.saveTime || new Date().toISOString())}</span>
                                         <span className="font-mono text-gray-500" title={magnet.hash || ''}>

@@ -4,7 +4,7 @@ import { MagnetInfo } from '../types/magnet';
 import { createRoot } from 'react-dom/client';
 import { MagnetPanel } from '../components/MagnetPanel';
 import { PageStateManager } from '../utils/pageStateManager';
-import { parseFileSize } from '../utils/magnet';
+import { parseFileSize, sortMagnetsBySize } from '../utils/magnet';
 
 class MagnetPicker {
   private button: HTMLButtonElement | null = null;
@@ -122,7 +122,7 @@ class MagnetPicker {
             const magnetInfo: MagnetInfo = {
               url: magnetUrl,
               fileName: `${magnetLink.textContent?.trim() || ''}${hdTag ? ' [HD]' : ''}`,
-              fileSize: cells[1].textContent?.trim() || '',
+              fileSize: parseFileSize(cells[1].textContent?.trim() || '0'),
               date: cells[2].textContent?.trim() || '',
               hash: hash,
               saveTime: new Date().toISOString()
@@ -136,11 +136,7 @@ class MagnetPicker {
       console.log('MagnetPicker: 解析完成，找到磁力链接数:', magnets.length);
       if (magnets.length > 0) {
         // 按文件大小排序（从大到小）
-        const sortedMagnets = [...magnets].sort((a, b) => {
-          const sizeA = parseFileSize(a.fileSize);
-          const sizeB = parseFileSize(b.fileSize);
-          return sizeB - sizeA;
-        });
+        const sortedMagnets = sortMagnetsBySize(magnets);
 
         // 检查是否需要执行默认保存
         if (!this.pageStateManager.hasDefaultSaved()) {
@@ -156,7 +152,7 @@ class MagnetPicker {
             console.log('MagnetPicker: 保存结果:', response);
             if (response?.success) {
               // 更新页面状态
-              await this.pageStateManager.addSavedMagnets(magnetsToSave.map(m => m.hash));
+              await this.pageStateManager.addSavedMagnets(magnetsToSave.map((m: MagnetInfo) => m.hash));
               await this.pageStateManager.setDefaultSaved();
               // 显示信息面板
               this.showPanel(sortedMagnets);

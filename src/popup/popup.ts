@@ -1,6 +1,7 @@
 /// <reference types="chrome"/>
 
 import { MagnetInfo } from '../types/magnet';
+import { formatFileSize } from '../utils/magnet';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const magnetList = document.getElementById('magnet-list');
@@ -29,7 +30,7 @@ function displayMagnets(magnets: MagnetInfo[]): void {
         <div class="magnet-item">
           <a href="${magnet.url}" target="_blank">${magnet.fileName}</a>
           <div class="magnet-info">
-            <span>${magnet.fileSize}</span>
+            <span>${formatFileSize(magnet.fileSize)}</span>
             <span>${magnet.date}</span>
           </div>
         </div>
