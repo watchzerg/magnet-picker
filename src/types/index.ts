@@ -1,14 +1,14 @@
-export interface MagnetInfo {
-  url: string;      // 磁力链接
-  fileName: string; // 文件名
-  fileSize: string; // 文件大小
-  date: string;     // 发布日期
-}
+import { MagnetInfo } from './magnet';
 
-export interface Message {
-  type: 'PARSE_MAGNETS' | 'SAVE_MAGNETS' | 'GET_MAGNETS' | 'REMOVE_MAGNET';
-  data?: any;
-}
+// 消息类型定义
+export type Message = 
+  | { type: 'GET_PAGE_STATE'; url: string }
+  | { type: 'SAVE_PAGE_STATE'; state: PageState }
+  | { type: 'SAVE_MAGNETS'; data: MagnetInfo[] }
+  | { type: 'GET_MAGNETS' }
+  | { type: 'REMOVE_MAGNET'; data: MagnetInfo }
+  | { type: 'PARSE_MAGNETS' }
+  | { type: 'CLEANUP_PAGE_STATES'; maxAge: number };
 
 export interface StorageData {
   magnets: MagnetInfo[];

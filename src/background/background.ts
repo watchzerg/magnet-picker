@@ -2,9 +2,11 @@
 
 import { Message } from '../types';
 import { MagnetInfo } from '../types/magnet';
+import { PageState, SessionState } from '../types';
 
 console.log('Background: 后台脚本已加载');
 
+// 监听来自 content script 的消息
 chrome.runtime.onMessage.addListener((
   message: Message,
   _sender: chrome.runtime.MessageSender,
@@ -13,6 +15,14 @@ chrome.runtime.onMessage.addListener((
   console.log('Background: 收到消息:', message);
 
   switch (message.type) {
+    case 'GET_PAGE_STATE':
+      handleGetPageState(message.url, sendResponse);
+      return true;
+
+    case 'SAVE_PAGE_STATE':
+      handleSavePageState(message.state, sendResponse);
+      return true;
+
     case 'SAVE_MAGNETS':
       console.log('Background: 保存磁力链接:', message.data);
       saveMagnets(message.data).then(() => {
@@ -46,8 +56,16 @@ chrome.runtime.onMessage.addListener((
       });
       return true;
 
+    case 'PARSE_MAGNETS':
+      console.log('Background: 收到解析磁力链接请求');
+      return false;
+
+    case 'CLEANUP_PAGE_STATES':
+      handleCleanupPageStates(message.maxAge, sendResponse);
+      return true;
+
     default:
-      console.warn('Background: 未知消息类型:', message.type);
+      console.warn('Background: 未知消息类型:', message);
       return false;
   }
 });
@@ -106,5 +124,67 @@ async function removeMagnet(magnet: MagnetInfo): Promise<void> {
   } catch (error) {
     console.error('Background: 删除出错:', error);
     throw error;
+  }
+}
+
+// 处理获取页面状态
+async function handleGetPageState(url: string, sendResponse: (response: any) => void) {
+  try {
+    const result = await chrome.storage.session.get('magnet_picker_page_states');
+    const states = result.magnet_picker_page_states as SessionState || {};
+    sendResponse({ success: true, state: states[url] || null });
+  } catch (error) {
+    console.error('获取页面状态失败:', error);
+    sendResponse({ success: false, error });
+  }
+}
+
+// 处理保存页面状态
+async function handleSavePageState(state: PageState, sendResponse: (response: any) => void) {
+  try {
+    const result = await chrome.storage.session.get('magnet_picker_page_states');
+    const states = result.magnet_picker_page_states as SessionState || {};
+    
+    // 更新状态
+    states[state.url] = {
+      ...state,
+      lastUpdate: Date.now()
+    };
+
+    // 保存到会话存储
+    await chrome.storage.session.set({
+      'magnet_picker_page_states': states
+    });
+    
+    sendResponse({ success: true });
+  } catch (error) {
+    console.error('保存页面状态失败:', error);
+    sendResponse({ success: false, error });
+  }
+}
+
+// 处理清理页面状态
+async function handleCleanupPageStates(maxAge: number, sendResponse: (response: any) => void) {
+  try {
+    const result = await chrome.storage.session.get('magnet_picker_page_states');
+    const states = result.magnet_picker_page_states as SessionState || {};
+    const now = Date.now();
+
+    // 过滤掉超过指定时间的状态
+    const cleanedStates = Object.entries(states).reduce((acc, [url, state]) => {
+      if (now - state.lastUpdate < maxAge) {
+        acc[url] = state;
+      }
+      return acc;
+    }, {} as SessionState);
+
+    await chrome.storage.session.set({
+      'magnet_picker_page_states': cleanedStates
+    });
+    
+    sendResponse({ success: true });
+  } catch (error) {
+    console.error('清理页面状态失败:', error);
+    sendResponse({ success: false, error });
   }
 } 

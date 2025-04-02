@@ -1,6 +1,6 @@
 /// <reference types="chrome"/>
 
-import { MagnetInfo } from '../types';
+import { MagnetInfo } from '../types/magnet';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const magnetList = document.getElementById('magnet-list');

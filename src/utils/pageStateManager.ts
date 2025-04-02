@@ -1,7 +1,6 @@
-import { PageState, SessionState } from '../types';
+import { PageState } from '../types';
 
 export class PageStateManager {
-  private static SESSION_KEY = 'magnet_picker_page_states';
   private url: string;
   private state: PageState | null = null;
 
@@ -29,9 +28,19 @@ export class PageStateManager {
   // 获取当前页面状态
   async getState(): Promise<PageState | null> {
     try {
-      const result = await chrome.storage.session.get(PageStateManager.SESSION_KEY);
-      const states = result[PageStateManager.SESSION_KEY] as SessionState || {};
-      return states[this.url] || null;
+      return new Promise((resolve) => {
+        chrome.runtime.sendMessage(
+          { type: 'GET_PAGE_STATE', url: this.url },
+          (response) => {
+            if (response?.success) {
+              resolve(response.state);
+            } else {
+              console.error('获取页面状态失败:', response?.error);
+              resolve(null);
+            }
+          }
+        );
+      });
     } catch (error) {
       console.error('获取页面状态失败:', error);
       return null;
@@ -43,21 +52,22 @@ export class PageStateManager {
     if (!this.state) return;
 
     try {
-      const result = await chrome.storage.session.get(PageStateManager.SESSION_KEY);
-      const states = result[PageStateManager.SESSION_KEY] as SessionState || {};
-      
-      // 更新状态
-      states[this.url] = {
-        ...this.state,
-        lastUpdate: Date.now()
-      };
-
-      // 保存到会话存储
-      await chrome.storage.session.set({
-        [PageStateManager.SESSION_KEY]: states
+      await new Promise<void>((resolve, reject) => {
+        chrome.runtime.sendMessage(
+          { type: 'SAVE_PAGE_STATE', state: this.state },
+          (response) => {
+            if (response?.success) {
+              resolve();
+            } else {
+              console.error('保存页面状态失败:', response?.error);
+              reject(new Error('保存页面状态失败'));
+            }
+          }
+        );
       });
     } catch (error) {
       console.error('保存页面状态失败:', error);
+      throw error;
     }
   }
 
@@ -102,20 +112,18 @@ export class PageStateManager {
   // 清理过期的页面状态（可选，在合适的时机调用）
   static async cleanup(maxAge: number = 24 * 60 * 60 * 1000): Promise<void> {
     try {
-      const result = await chrome.storage.session.get(PageStateManager.SESSION_KEY);
-      const states = result[PageStateManager.SESSION_KEY] as SessionState || {};
-      const now = Date.now();
-
-      // 过滤掉超过指定时间的状态
-      const cleanedStates = Object.entries(states).reduce((acc, [url, state]) => {
-        if (now - state.lastUpdate < maxAge) {
-          acc[url] = state;
-        }
-        return acc;
-      }, {} as SessionState);
-
-      await chrome.storage.session.set({
-        [PageStateManager.SESSION_KEY]: cleanedStates
+      await new Promise<void>((resolve, reject) => {
+        chrome.runtime.sendMessage(
+          { type: 'CLEANUP_PAGE_STATES', maxAge },
+          (response) => {
+            if (response?.success) {
+              resolve();
+            } else {
+              console.error('清理页面状态失败:', response?.error);
+              reject(new Error('清理页面状态失败'));
+            }
+          }
+        );
       });
     } catch (error) {
       console.error('清理页面状态失败:', error);
