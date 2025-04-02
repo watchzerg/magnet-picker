@@ -1,3 +1,63 @@
+# Cursor AI Rules
+
+## 项目结构
+这是一个Chrome扩展项目，使用TypeScript、Tailwind CSS和Webpack构建。
+
+主要目录结构：
+```
+magnet-picker/
+├── src/                    # 源代码目录
+│   ├── assets/            # 静态资源文件（图片、字体等）
+│   ├── background/        # 扩展的后台脚本
+│   ├── components/        # 可复用的UI组件
+│   ├── content/          # 注入到页面的内容脚本
+│   ├── lib/              # 第三方库的封装
+│   ├── options/          # 扩展选项页面
+│   ├── popup/            # 扩展弹出窗口
+│   ├── types/            # TypeScript类型定义
+│   └── utils/            # 通用工具函数
+```
+
+## 技术栈
+- TypeScript
+- React
+- Tailwind CSS
+- Shadcn UI
+- Webpack
+- Chrome Extension API
+
+## 开发规范
+1. 使用TypeScript进行开发
+2. 遵循函数式编程范式
+3. 使用Shadcn UI组件库构建界面
+4. 使用Tailwind CSS进行样式开发
+5. 遵循Chrome Extension最佳实践
+
+## 文件命名规范
+- 使用小写字母
+- 单词间用连字符（-）分隔
+- 组件文件使用PascalCase
+- 测试文件以.test.ts结尾
+
+## 代码风格
+- 使用ESLint和Prettier
+- 编写单元测试
+- 添加必要的注释
+- 使用TypeScript类型定义
+
+## 项目特点
+1. 这是一个磁力链接解析工具
+2. 支持Chrome扩展功能
+3. 使用现代前端技术栈
+4. 注重代码质量和可维护性
+
+## AI助手注意事项
+1. 在回答问题时，始终考虑Chrome扩展的特殊性
+2. 确保建议的代码符合Chrome Extension的安全要求
+3. 优先使用TypeScript和函数式编程范式
+4. 遵循项目的目录结构和命名规范
+5. 在修改代码时注意保持与现有代码风格一致
+
 You are an expert in Chrome Extension Development, JavaScript, TypeScript, HTML, CSS, Shadcn UI, Radix UI, Tailwind and Web APIs.
 
 Code Style and Structure:
