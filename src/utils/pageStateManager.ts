@@ -101,6 +101,12 @@ export class PageStateManager {
     });
   }
 
+  // 检查是否所有磁力链接都未保存
+  async areAllMagnetsUnsaved(currentMagnets: MagnetInfo[]): Promise<boolean> {
+    const savedStates = await this.getSavedMagnetStates(currentMagnets);
+    return Array.from(savedStates.values()).every(state => !state);
+  }
+
   // 清理过期的页面状态（可选，在合适的时机调用）
   static async cleanup(maxAge: number = 24 * 60 * 60 * 1000): Promise<void> {
     try {

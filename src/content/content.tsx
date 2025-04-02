@@ -187,30 +187,50 @@ class MagnetPicker {
       console.log('MagnetPicker: 找到磁力链接:', magnets.length);
 
       if (magnets.length > 0) {
-        // 检查是否需要执行默认保存
+        // 先显示面板，确保状态与全局同步
+        await this.showPanel(magnets);
+
+        // 检查是否是本session首次打开
         if (!this.pageStateManager.hasDefaultSaved()) {
+          console.log('MagnetPicker: 本session首次打开，执行默认保存');
           // 使用新的评分筛选机制选择磁力链接
           const magnetsToSave = selectMagnetsByScore(magnets);
-          console.log('MagnetPicker: 准备保存筛选后的磁力链接:', magnetsToSave);
           
           // 保存磁力链接
           chrome.runtime.sendMessage({
             type: 'SAVE_MAGNETS',
             data: magnetsToSave
           }, async (response) => {
-            console.log('MagnetPicker: 保存结果:', response);
             if (response?.success) {
-              // 更新页面状态，只记录已执行过默认保存
+              // 更新页面状态，标记已在本session中打开
               await this.pageStateManager.setDefaultSaved();
-              // 显示信息面板
-              this.showPanel(magnets);
+              // 重新显示面板以更新状态
+              await this.showPanel(magnets);
             } else {
               this.showErrorMessage('保存失败，请重试');
             }
           });
         } else {
-          // 直接显示面板，使用现有状态
-          this.showPanel(magnets);
+          // 检查是否所有磁力链接都未保存
+          const allUnsaved = await this.pageStateManager.areAllMagnetsUnsaved(magnets);
+          if (allUnsaved) {
+            console.log('MagnetPicker: 所有磁力链接都未保存，执行默认保存');
+            const magnetsToSave = selectMagnetsByScore(magnets);
+            
+            chrome.runtime.sendMessage({
+              type: 'SAVE_MAGNETS',
+              data: magnetsToSave
+            }, async (response) => {
+              if (response?.success) {
+                // 重新显示面板以更新状态
+                await this.showPanel(magnets);
+              } else {
+                this.showErrorMessage('保存失败，请重试');
+              }
+            });
+          } else {
+            console.log('MagnetPicker: 已有磁力链接处于保存状态，无需执行默认保存');
+          }
         }
       } else {
         console.log('MagnetPicker: 未找到磁力链接');
