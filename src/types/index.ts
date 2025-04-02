@@ -6,7 +6,7 @@ export interface MagnetInfo {
 }
 
 export interface Message {
-  type: 'PARSE_MAGNETS' | 'SAVE_MAGNETS' | 'GET_MAGNETS';
+  type: 'PARSE_MAGNETS' | 'SAVE_MAGNETS' | 'GET_MAGNETS' | 'REMOVE_MAGNET';
   data?: any;
 }
 

@@ -108,6 +108,41 @@ class MagnetPicker {
       }
     };
 
+    // 处理保存和取消保存磁力链接
+    const handleToggleSave = (magnet: MagnetInfo, isSaved: boolean) => {
+      if (isSaved) {
+        // 取消保存
+        console.log('MagnetPicker: 取消保存磁力链接:', magnet.fileName);
+        chrome.runtime.sendMessage({
+          type: 'REMOVE_MAGNET',
+          data: magnet
+        }, (response) => {
+          if (response?.success) {
+            const newSavedMagnets = savedMagnets.filter(m => m.hash !== magnet.hash);
+            this.showPanel(magnets, newSavedMagnets);
+            this.showSuccessMessage('已取消保存');
+          } else {
+            this.showErrorMessage('取消保存失败，请重试');
+          }
+        });
+      } else {
+        // 保存
+        console.log('MagnetPicker: 保存磁力链接:', magnet.fileName);
+        chrome.runtime.sendMessage({
+          type: 'SAVE_MAGNETS',
+          data: [magnet]
+        }, (response) => {
+          if (response?.success) {
+            const newSavedMagnets = [...savedMagnets, magnet];
+            this.showPanel(magnets, newSavedMagnets);
+            this.showSuccessMessage('保存成功');
+          } else {
+            this.showErrorMessage('保存失败，请重试');
+          }
+        });
+      }
+    };
+
     // 添加点击事件监听器到 document
     const handleDocumentClick = (e: MouseEvent) => {
       // 如果点击的是按钮，不关闭面板
@@ -145,7 +180,8 @@ class MagnetPicker {
         onClose={() => {
           handleClose();
           document.removeEventListener('click', handleDocumentClick);
-        }} 
+        }}
+        onToggleSave={handleToggleSave}
       />
     );
   }
@@ -192,9 +228,16 @@ class MagnetPicker {
 
       console.log('MagnetPicker: 解析完成，找到磁力链接数:', magnets.length);
       if (magnets.length > 0) {
-        // 只保存前3个磁力链接
-        const magnetsToSave = magnets.slice(0, 3);
-        console.log('MagnetPicker: 准备保存前3个磁力链接');
+        // 按文件大小排序（从大到小）
+        const sortedMagnets = [...magnets].sort((a, b) => {
+          const sizeA = parseFloat(a.fileSize.replace(/[^0-9.]/g, ''));
+          const sizeB = parseFloat(b.fileSize.replace(/[^0-9.]/g, ''));
+          return sizeB - sizeA;
+        });
+        
+        // 保存前3个最大的文件
+        const magnetsToSave = sortedMagnets.slice(0, 3);
+        console.log('MagnetPicker: 准备保存前3个最大的磁力链接');
         
         // 保存磁力链接
         chrome.runtime.sendMessage({
@@ -204,7 +247,7 @@ class MagnetPicker {
           console.log('MagnetPicker: 保存结果:', response);
           if (response?.success) {
             // 显示信息面板，传入所有磁力链接和已保存的磁力链接
-            this.showPanel(magnets, magnetsToSave);
+            this.showPanel(sortedMagnets, magnetsToSave);
           } else {
             this.showErrorMessage('保存失败，请重试');
           }
@@ -249,6 +292,15 @@ class MagnetPicker {
     console.error('MagnetPicker: 显示错误消息:', message);
     const toast = document.createElement('div');
     toast.className = 'magnet-picker-toast magnet-picker-toast-error';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+
+  private showSuccessMessage(message: string): void {
+    console.log('MagnetPicker: 显示成功消息:', message);
+    const toast = document.createElement('div');
+    toast.className = 'magnet-picker-toast magnet-picker-toast-success';
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);

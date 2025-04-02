@@ -35,6 +35,17 @@ chrome.runtime.onMessage.addListener((
       });
       return true;
 
+    case 'REMOVE_MAGNET':
+      console.log('Background: 删除磁力链接:', message.data);
+      removeMagnet(message.data).then(() => {
+        console.log('Background: 磁力链接删除成功');
+        sendResponse({ success: true });
+      }).catch(error => {
+        console.error('Background: 删除失败:', error);
+        sendResponse({ success: false, error: error.message });
+      });
+      return true;
+
     default:
       console.warn('Background: 未知消息类型:', message.type);
       return false;
@@ -74,5 +85,26 @@ async function getMagnets(): Promise<MagnetInfo[]> {
   } catch (error) {
     console.error('Background: 获取出错:', error);
     return [];
+  }
+}
+
+async function removeMagnet(magnet: MagnetInfo): Promise<void> {
+  try {
+    const { magnets: existingMagnets = [] } = await chrome.storage.local.get('magnets');
+    
+    // 过滤掉要删除的磁力链接
+    const updatedMagnets = existingMagnets.filter((m: MagnetInfo) => m.hash !== magnet.hash);
+    
+    // 如果没有找到要删除的磁力链接
+    if (updatedMagnets.length === existingMagnets.length) {
+      console.log('Background: 未找到要删除的磁力链接');
+      return;
+    }
+    
+    await chrome.storage.local.set({ magnets: updatedMagnets });
+    console.log('Background: 删除完成，剩余:', updatedMagnets.length);
+  } catch (error) {
+    console.error('Background: 删除出错:', error);
+    throw error;
   }
 } 
