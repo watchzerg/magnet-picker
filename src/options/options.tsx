@@ -5,6 +5,7 @@ import { getMagnetsFromStorage, sortMagnetsBySize } from '../utils/magnet';
 import { MagnetList } from '../components/magnet/MagnetList';
 import RuleList from '../components/rule/RuleList';
 import './options.css';
+import { MagnetRule } from '../types/rule';
 
 console.log('Options script loaded');
 
@@ -147,8 +148,24 @@ const MagnetManagementTab: React.FC = () => {
     );
 };
 
-const OptionsPage: React.FC = () => {
+const Options: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'management' | 'rules'>('management');
+    const [rules, setRules] = useState<MagnetRule[]>([]);
+
+    // 从 Chrome Storage 加载规则
+    useEffect(() => {
+        chrome.storage.local.get(['magnetRules'], (result) => {
+            if (result.magnetRules) {
+                setRules(result.magnetRules);
+            }
+        });
+    }, []);
+
+    // 保存规则到 Chrome Storage
+    const handleRulesChange = (newRules: MagnetRule[]) => {
+        chrome.storage.local.set({ magnetRules: newRules });
+        setRules(newRules);
+    };
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -180,7 +197,10 @@ const OptionsPage: React.FC = () => {
             </div>
 
             <div className="mt-6">
-                {activeTab === 'management' ? <MagnetManagementTab /> : <RuleList />}
+                {activeTab === 'management' ? <MagnetManagementTab /> : <RuleList
+                    rules={rules}
+                    onChange={handleRulesChange}
+                />}
             </div>
         </div>
     );
@@ -195,7 +215,7 @@ try {
         console.log('Rendering React app...');
         root.render(
             <ErrorBoundary>
-                <OptionsPage />
+                <Options />
             </ErrorBoundary>
         );
         console.log('React app rendered');
