@@ -1,7 +1,4 @@
-export const extractHashFromMagnet = (magnetUrl: string): string => {
-    const match = magnetUrl.match(/btih:([a-fA-F0-9]{40})/);
-    return match ? match[1].toUpperCase() : '';
-};
+import { MagnetInfo } from '../../types/magnet';
 
 export const parseFileSize = (sizeStr: string): number => {
     try {
@@ -67,4 +64,12 @@ export const formatFileSize = (bytes: number): string => {
         console.error('Error formatting file size:', error);
         return '未知大小';
     }
+};
+
+export const sortMagnetsBySize = (magnets: MagnetInfo[]): MagnetInfo[] => {
+    if (!Array.isArray(magnets)) {
+        console.warn('sortMagnetsBySize received non-array input:', magnets);
+        return [];
+    }
+    return [...magnets].sort((a, b) => b.fileSize - a.fileSize);
 }; 

@@ -2,6 +2,12 @@ import React from 'react';
 import { MagnetInfo } from '../types/magnet';
 import { formatFileSize, calculateMagnetScores } from '../utils/magnet';
 
+interface MagnetScore {
+  magnet: MagnetInfo;
+  defaultScore: number;
+  finalScore: number;
+}
+
 interface MagnetPanelProps {
   magnets: MagnetInfo[];
   savedStates: Map<string, boolean>;
@@ -59,7 +65,7 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
       <div className="magnet-panel-content">
         {magnets.map((magnet) => {
           const isSaved = isMagnetSaved(magnet);
-          const score = magnetScores.find(s => s.magnet.hash === magnet.hash);
+          const score = magnetScores.find((s: MagnetScore) => s.magnet.hash === magnet.hash);
           return (
             <div
               key={magnet.hash}

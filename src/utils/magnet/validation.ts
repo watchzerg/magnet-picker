@@ -1,5 +1,6 @@
 import { MagnetInfo } from '../../types/magnet';
-import { extractHashFromMagnet, parseFileSize } from './parser';
+import { extractHashFromMagnet } from './hash';
+import { parseFileSize } from './size';
 
 export const isValidMagnet = (magnet: any): magnet is MagnetInfo => {
     if (!magnet || typeof magnet !== 'object') {

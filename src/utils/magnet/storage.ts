@@ -1,5 +1,5 @@
 import { MagnetInfo } from '../../types/magnet';
-import { isValidMagnet } from './validator';
+import { isValidMagnet } from './validation';
 
 export const getMagnetsFromStorage = async (): Promise<MagnetInfo[]> => {
     try {

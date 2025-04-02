@@ -1,5 +1,5 @@
 import { MagnetInfo } from '../../types/magnet';
-import { formatFileSize } from './parser';
+import { formatFileSize } from './size';
 
 // 评分相关的常量
 const SCORE_THRESHOLD_10GB = 10 * 1024 * 1024 * 1024;
@@ -64,21 +64,31 @@ export const selectMagnetsByScore = (magnets: MagnetInfo[]): MagnetInfo[] => {
   }
   
   // 第三级筛选：剩余磁力链接按体积排序
-  const remainingMagnetsAfterSecond = sortedByScore
+  const finalRemainingMagnets = remainingMagnets
     .filter(item => item.finalScore <= SCORE_THRESHOLD_5GB)
-    .sort((a, b) => b.magnet.fileSize - a.magnet.fileSize)
     .map(item => item.magnet);
   
-  const finalMagnets = [...combinedSecondLevel, ...remainingMagnetsAfterSecond]
-    .slice(0, MIN_MAGNETS_FINAL);
-  
+  const finalMagnets = [...combinedSecondLevel, ...finalRemainingMagnets].slice(0, MIN_MAGNETS_FINAL);
   console.log(`最终筛选结果: ${finalMagnets.length} 个磁力链接`);
+  
   return finalMagnets;
 };
 
 export const sortMagnetsByScore = (magnets: MagnetInfo[]): MagnetInfo[] => {
+  if (!Array.isArray(magnets)) {
+    console.warn('sortMagnetsByScore received non-array input:', magnets);
+    return [];
+  }
+  
   const scoredMagnets = calculateMagnetScores(magnets);
-  return scoredMagnets
-    .sort((a, b) => b.finalScore - a.finalScore)
-    .map(item => item.magnet);
+  const sortedMagnets = [...magnets];
+  
+  // 按最终评分从大到小排序
+  sortedMagnets.sort((a, b) => {
+    const scoreA = scoredMagnets.find(item => item.magnet.hash === a.hash)?.finalScore || 0;
+    const scoreB = scoredMagnets.find(item => item.magnet.hash === b.hash)?.finalScore || 0;
+    return scoreB - scoreA;
+  });
+  
+  return sortedMagnets;
 }; 
