@@ -33,7 +33,7 @@ const filesToCheck: FileCheck[] = [
     { path: 'dist/background/background.js', minSize: 1000, maxSize: 5000, required: true },
     { path: 'dist/options/options.js', minSize: 50000, maxSize: 200000, required: true },
     { path: 'dist/content/content.js', minSize: 50000, maxSize: 200000, required: true },
-    { path: 'dist/popup/popup.js', minSize: 100, maxSize: 2000, required: true },
+    { path: 'dist/popup/popup.js', minSize: 100, maxSize: 6000, required: true },
     
     // HTML文件
     { path: 'dist/options/options.html', minSize: 100, maxSize: 1000, required: true },

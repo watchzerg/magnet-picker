@@ -4,8 +4,8 @@ import { isValidMagnet } from './validator';
 import { getMagnetsFromStorage } from './storage';
 import { calculateMagnetScores, selectMagnetsByScore, sortMagnetsByScore } from './scorer';
 
+export type { MagnetInfo };
 export {
-    MagnetInfo,
     extractHashFromMagnet,
     parseFileSize,
     formatFileSize,

@@ -1,5 +1,6 @@
 /// <reference types="chrome"/>
 
+import React from 'react';
 import { createRoot, Root as ReactDOMRoot } from 'react-dom/client';
 import { MagnetInfo } from '../types/magnet';
 import { MagnetPanel } from '../components/MagnetPanel';
