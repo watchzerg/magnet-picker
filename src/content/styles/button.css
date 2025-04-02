@@ -1,0 +1,29 @@
+/* 磁力链接按钮样式 */
+
+.magnet-picker-button {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10000;
+  padding: 10px 20px;
+  background-color: rgba(59, 130, 246, 0.9);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-in-out;
+}
+
+.magnet-picker-button:hover {
+  background-color: rgba(37, 99, 235, 1);
+  transform: translateY(-50%) scale(1.05);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.magnet-picker-button:active {
+  transform: translateY(-50%) scale(0.95);
+} 

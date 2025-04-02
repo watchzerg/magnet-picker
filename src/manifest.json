@@ -22,7 +22,7 @@
     {
       "matches": ["https://www.javbus.com/*"],
       "js": ["content/content.js"],
-      "css": ["content/content.css"]
+      "css": ["content/styles/index.css"]
     }
   ],
   "background": {

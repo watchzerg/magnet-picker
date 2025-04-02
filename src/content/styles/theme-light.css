@@ -1,0 +1,74 @@
+/* 亮色主题样式 */
+
+/* 面板样式 */
+.magnet-panel {
+  background-color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.magnet-panel-header {
+  border-bottom-color: #e5e7eb;
+}
+
+.magnet-panel-title {
+  color: #1f2937;
+}
+
+.magnet-panel-close {
+  color: #6b7280;
+}
+
+.magnet-panel-close:hover {
+  color: #374151;
+  background-color: #f3f4f6;
+}
+
+/* 磁力链接项样式 */
+.magnet-item-saved {
+  background-color: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+.magnet-item-unsaved {
+  background-color: rgba(243, 244, 246, 1);
+  border-color: rgba(229, 231, 235, 1);
+}
+
+.magnet-item-title {
+  color: #1f2937;
+}
+
+.magnet-item-info {
+  color: #6b7280;
+}
+
+.magnet-item-badge {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: rgb(22, 163, 74);
+}
+
+.magnet-item-badge-unsaved {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: rgb(37, 99, 235);
+}
+
+.magnet-item-download-saved {
+  color: rgb(22, 163, 74);
+  background-color: rgba(34, 197, 94, 0.1);
+}
+
+.magnet-item-download-unsaved {
+  color: rgb(59, 130, 246);
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.magnet-item-size,
+.magnet-item-score {
+  background-color: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+
+.magnet-item-score {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: rgb(37, 99, 235);
+} 

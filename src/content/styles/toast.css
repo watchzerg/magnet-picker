@@ -1,0 +1,22 @@
+/* 提示消息样式 */
+
+.magnet-picker-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 10001;
+  animation: slideIn 0.3s ease-out;
+}
+
+.magnet-picker-toast-error {
+  background-color: rgba(239, 68, 68, 0.9);
+}
+
+.magnet-picker-toast-success {
+  background-color: rgba(34, 197, 94, 0.9);
+} 

@@ -7,7 +7,7 @@
     "watch": "webpack --watch",
     "dev": "npm run build && npm run watch",
     "generate-icons": "node scripts/generate-icons.js",
-    "copy-static": "powershell New-Item -ItemType Directory -Force -Path dist/assets, dist/popup, dist/content, dist/options && powershell Copy-Item -Force -Recurse src/assets/* dist/assets/ && powershell Copy-Item -Force src/manifest.json dist/ && powershell Copy-Item -Force src/popup/popup.html dist/popup/ && powershell Copy-Item -Force src/popup/popup.css dist/popup/ && powershell Copy-Item -Force src/content/content.css dist/content/ && powershell Copy-Item -Force src/options/options.html dist/options/ && powershell Copy-Item -Force src/options/options.css dist/options/",
+    "copy-static": "powershell -Command \"New-Item -ItemType Directory -Force -Path dist/content/styles, dist/assets, dist/popup, dist/options; Get-Content src/content/styles/button.css, src/content/styles/panel.css, src/content/styles/item.css, src/content/styles/toast.css, src/content/styles/scrollbar.css, src/content/styles/animations.css, src/content/styles/theme-light.css, src/content/styles/theme-dark.css | Set-Content dist/content/styles/index.css; Copy-Item -Force src/manifest.json dist/; Copy-Item -Force src/assets/* dist/assets/; Copy-Item -Force src/popup/popup.html dist/popup/; Copy-Item -Force src/popup/popup.css dist/popup/; Copy-Item -Force src/options/options.html dist/options/; Copy-Item -Force src/options/options.css dist/options/\"",
     "check-build": "ts-node scripts/check-build.ts"
   },
   "dependencies": {

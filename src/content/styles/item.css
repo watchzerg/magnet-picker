@@ -1,0 +1,120 @@
+/* 磁力链接项样式 */
+
+.magnet-item {
+  padding: 8px 16px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  user-select: none;
+}
+
+.magnet-item:focus {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: -2px;
+}
+
+.magnet-item-saved {
+  background-color: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.magnet-item-saved:hover {
+  background-color: rgba(34, 197, 94, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(34, 197, 94, 0.1);
+}
+
+.magnet-item-unsaved {
+  background-color: rgba(243, 244, 246, 1);
+  border: 1px solid rgba(229, 231, 235, 1);
+}
+
+.magnet-item-unsaved:hover {
+  background-color: rgba(243, 244, 246, 0.8);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.magnet-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.magnet-item-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.magnet-item-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+  background-color: rgba(34, 197, 94, 0.1);
+  color: rgb(22, 163, 74);
+  margin-left: 8px;
+}
+
+.magnet-item-badge-unsaved {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: rgb(37, 99, 235);
+}
+
+.magnet-item-download {
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+  margin-left: 4px;
+}
+
+.magnet-item-download-saved {
+  color: rgb(22, 163, 74);
+  background-color: rgba(34, 197, 94, 0.1);
+}
+
+.magnet-item-download-saved:hover {
+  background-color: rgba(34, 197, 94, 0.2);
+}
+
+.magnet-item-download-unsaved {
+  color: rgb(59, 130, 246);
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.magnet-item-download-unsaved:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+.magnet-item-metrics {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.magnet-item-size,
+.magnet-item-score {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: rgba(107, 114, 128, 0.1);
+  white-space: nowrap;
+}
+
+.magnet-item-score {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: rgb(37, 99, 235);
+} 

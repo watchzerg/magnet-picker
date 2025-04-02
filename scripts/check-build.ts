@@ -41,7 +41,7 @@ const filesToCheck: FileCheck[] = [
     
     // CSS文件
     { path: 'dist/options/options.css', required: true },
-    { path: 'dist/content/content.css', required: true },
+    { path: 'dist/content/styles/index.css', required: true },
     { path: 'dist/popup/popup.css', required: true },
     
     // 图标文件
