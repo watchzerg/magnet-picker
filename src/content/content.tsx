@@ -4,6 +4,7 @@ import { MagnetInfo } from '../types/magnet';
 import { createRoot } from 'react-dom/client';
 import { MagnetPanel } from '../components/MagnetPanel';
 import { PageStateManager } from '../utils/pageStateManager';
+import { parseFileSize } from '../utils/magnet';
 
 class MagnetPicker {
   private button: HTMLButtonElement | null = null;
@@ -136,8 +137,8 @@ class MagnetPicker {
       if (magnets.length > 0) {
         // 按文件大小排序（从大到小）
         const sortedMagnets = [...magnets].sort((a, b) => {
-          const sizeA = parseFloat(a.fileSize.replace(/[^0-9.]/g, ''));
-          const sizeB = parseFloat(b.fileSize.replace(/[^0-9.]/g, ''));
+          const sizeA = parseFileSize(a.fileSize);
+          const sizeB = parseFileSize(b.fileSize);
           return sizeB - sizeA;
         });
 
