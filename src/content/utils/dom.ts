@@ -1,24 +1,41 @@
 import { MagnetInfo } from '../../types/magnet';
+import { DOMRefs } from '../types/content';
 
-export function createFloatingButton(): HTMLButtonElement {
+/**
+ * 创建浮动按钮
+ */
+export const createFloatingButton = (onClick: () => void): HTMLButtonElement => {
   const button = document.createElement('button');
   button.className = 'magnet-picker-button';
   button.textContent = '解析磁力链接';
+  button.addEventListener('click', onClick);
+  document.body.appendChild(button);
   return button;
-}
+};
 
-export function createPanelContainer(): HTMLDivElement {
-  const container = document.createElement('div');
-  container.id = 'magnet-picker-panel';
-  container.style.position = 'fixed';
-  container.style.top = '0';
-  container.style.right = '0';
-  container.style.zIndex = '999999';
-  container.style.display = 'block';
-  container.style.width = '100%';
-  container.style.height = '100%';
-  container.style.pointerEvents = 'none';
+/**
+ * 创建面板容器
+ */
+export const createPanelContainer = (): HTMLDivElement => {
+  // 移除已存在的面板容器
+  const existingContainer = document.getElementById('magnet-picker-panel');
+  if (existingContainer) {
+    existingContainer.remove();
+  }
+
+  // 创建新的面板容器
+  const panelContainer = document.createElement('div');
+  panelContainer.id = 'magnet-picker-panel';
+  panelContainer.style.position = 'fixed';
+  panelContainer.style.top = '0';
+  panelContainer.style.right = '0';
+  panelContainer.style.zIndex = '999999';
+  panelContainer.style.display = 'block';
+  panelContainer.style.width = '100%';
+  panelContainer.style.height = '100%';
+  panelContainer.style.pointerEvents = 'none';
   
+  // 创建一个内部容器用于实际内容
   const innerContainer = document.createElement('div');
   innerContainer.style.position = 'absolute';
   innerContainer.style.top = '20px';
@@ -33,9 +50,26 @@ export function createPanelContainer(): HTMLDivElement {
   innerContainer.style.padding = '16px';
   innerContainer.style.fontSize = '14px';
   
-  container.appendChild(innerContainer);
-  return container;
-}
+  panelContainer.appendChild(innerContainer);
+  document.body.appendChild(panelContainer);
+  
+  return panelContainer;
+};
+
+/**
+ * 清理DOM引用
+ */
+export const cleanupDOMRefs = (refs: DOMRefs): void => {
+  if (refs.button) {
+    refs.button.remove();
+    refs.button = null;
+  }
+  if (refs.panelContainer) {
+    refs.panelContainer.remove();
+    refs.panelContainer = null;
+  }
+  refs.root = null;
+};
 
 export function showToast(message: string, type: 'success' | 'error'): void {
   const toast = document.createElement('div');

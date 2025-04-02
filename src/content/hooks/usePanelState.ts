@@ -5,7 +5,7 @@ import { MagnetPanel } from '../../components/MagnetPanel';
 import { createPanelContainer } from '../utils/dom';
 import { PageStateManager } from '../../utils/pageStateManager';
 import { sortMagnetsByScore } from '../../utils/magnet';
-import { MagnetService } from '../services/MagnetService';
+import { showErrorMessage, showSuccessMessage } from '../utils/toast';
 
 export function usePanelState() {
   let panelContainer: HTMLDivElement | null = null;
@@ -75,10 +75,25 @@ export function usePanelState() {
   };
 
   const handleToggleSave = async (magnet: MagnetInfo, isSaved: boolean) => {
-    if (isSaved) {
-      await MagnetService.removeMagnet(magnet);
-    } else {
-      await MagnetService.saveMagnet(magnet);
+    try {
+      const response = await new Promise<{ success: boolean; error?: string }>((resolve) => {
+        chrome.runtime.sendMessage({
+          type: isSaved ? 'REMOVE_MAGNET' : 'SAVE_MAGNETS',
+          data: isSaved ? magnet : [magnet]
+        }, response => {
+          resolve(response || { success: false, error: 'No response from background' });
+        });
+      });
+
+      if (!response.success) {
+        console.error('保存磁力链接失败:', response.error);
+        showErrorMessage('保存失败，请重试');
+      } else {
+        showSuccessMessage(isSaved ? '已取消保存' : '已保存');
+      }
+    } catch (error) {
+      console.error('保存磁力链接出错:', error);
+      showErrorMessage('保存失败，请重试');
     }
   };
 

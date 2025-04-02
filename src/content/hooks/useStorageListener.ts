@@ -1,30 +1,31 @@
+import { useEffect } from 'react';
 import { MagnetInfo } from '../../types/magnet';
+import { StorageService } from '../services/StorageService';
 
-export function useStorageListener(
+export const useStorageListener = (
+  storageService: StorageService,
   currentMagnets: MagnetInfo[],
-  isPanelVisible: boolean,
-  onMagnetsUpdate: (savedStates: { [key: string]: boolean }) => void
-) {
-  const storageChangeListener = (changes: { [key: string]: chrome.storage.StorageChange }) => {
-    if (changes.magnets && isPanelVisible) {
-      console.log('MagnetPicker: 检测到磁力链接存储变化，更新面板状态');
-      // 重新获取当前磁力链接的保存状态并更新面板
-      chrome.storage.local.get(['magnets'], (result) => {
-        const magnets = result.magnets || [];
-        const savedStates: { [key: string]: boolean } = {};
-        
-        currentMagnets.forEach(magnet => {
-          savedStates[magnet.hash] = magnets.some((m: MagnetInfo) => m.hash === magnet.hash);
-        });
-        
-        onMagnetsUpdate(savedStates);
-      });
-    }
-  };
+  onStorageChange: (savedStates: Map<string, boolean>) => void
+) => {
+  useEffect(() => {
+    const handleStorageChange = async (changes: { [key: string]: chrome.storage.StorageChange }) => {
+      // 检查是否是磁力链接相关的存储变化
+      if ('magnets' in changes) {
+        console.log('StorageListener: 检测到磁力链接存储变化');
+        // 重新获取所有磁力链接的保存状态
+        const states = await storageService.getSavedMagnetStates(currentMagnets);
+        onStorageChange(states);
+      }
+    };
 
-  chrome.storage.onChanged.addListener(storageChangeListener);
+    // 添加存储变化监听器
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    console.log('StorageListener: 添加了存储变化监听器');
 
-  return () => {
-    chrome.storage.onChanged.removeListener(storageChangeListener);
-  };
-} 
+    // 清理函数
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+      console.log('StorageListener: 移除了存储变化监听器');
+    };
+  }, [storageService, currentMagnets, onStorageChange]);
+}; 

@@ -16,7 +16,16 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: 'ts-loader',
+        use: [
+          {
+            loader: 'ts-loader',
+            options: {
+              compilerOptions: {
+                jsx: 'react-jsx'
+              }
+            }
+          }
+        ],
         exclude: /node_modules/,
       },
       {
@@ -41,5 +50,9 @@ module.exports = {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
+    alias: {
+      'react': path.resolve('./node_modules/react'),
+      'react-dom': path.resolve('./node_modules/react-dom'),
+    }
   },
 }; 

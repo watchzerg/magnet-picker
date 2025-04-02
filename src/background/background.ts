@@ -37,6 +37,7 @@ chrome.runtime.onMessage.addListener((
     case 'GET_MAGNETS':
       console.log('Background: 获取磁力链接');
       getMagnets().then(magnets => {
+        console.log('Background: 获取成功，数量:', magnets.length);
         console.log('Background: 返回磁力链接:', magnets);
         sendResponse(magnets);
       }).catch(error => {
@@ -66,6 +67,7 @@ chrome.runtime.onMessage.addListener((
 
     default:
       console.warn('Background: 未知消息类型:', message);
+      sendResponse({ success: false, error: 'Unknown message type' });
       return false;
   }
 });
