@@ -95,45 +95,12 @@ class MagnetPicker {
 
   private async parseMagnets(): Promise<void> {
     console.log('MagnetPicker: 开始解析磁力链接');
+
     try {
-      // 等待磁力链接加载完成
-      await this.waitForMagnets();
+      // 解析页面上的所有磁力链接
+      const magnets = await this.findMagnets();
+      console.log('MagnetPicker: 找到磁力链接:', magnets.length);
 
-      const magnets: MagnetInfo[] = [];
-      // 查找所有包含磁力链接的行
-      const rows = document.querySelectorAll('tr[onmouseover]');
-      console.log('MagnetPicker: 找到行数:', rows.length);
-
-      rows.forEach((row, index) => {
-        const cells = row.querySelectorAll('td');
-        console.log(`MagnetPicker: 第${index + 1}行单元格数:`, cells.length);
-
-        if (cells.length >= 3) {
-          // 从第一个单元格中获取磁力链接
-          const firstCell = cells[0];
-          const magnetLink = firstCell.querySelector('a[href^="magnet:"]');
-          const hdTag = firstCell.querySelector('.btn-primary.disabled');
-          
-          if (magnetLink) {
-            const magnetUrl = magnetLink.getAttribute('href') || '';
-            const hashMatch = magnetUrl.match(/btih:([A-Fa-f0-9]{40})/);
-            const hash = hashMatch ? hashMatch[1].toUpperCase() : '';
-            
-            const magnetInfo: MagnetInfo = {
-              url: magnetUrl,
-              fileName: `${magnetLink.textContent?.trim() || ''}${hdTag ? ' [HD]' : ''}`,
-              fileSize: parseFileSize(cells[1].textContent?.trim() || '0'),
-              date: cells[2].textContent?.trim() || '',
-              hash: hash,
-              saveTime: new Date().toISOString()
-            };
-            console.log('MagnetPicker: 解析到磁力链接:', magnetInfo);
-            magnets.push(magnetInfo);
-          }
-        }
-      });
-
-      console.log('MagnetPicker: 解析完成，找到磁力链接数:', magnets.length);
       if (magnets.length > 0) {
         // 检查是否需要执行默认保存
         if (!this.pageStateManager.hasDefaultSaved()) {
@@ -148,8 +115,7 @@ class MagnetPicker {
           }, async (response) => {
             console.log('MagnetPicker: 保存结果:', response);
             if (response?.success) {
-              // 更新页面状态
-              await this.pageStateManager.addSavedMagnets(magnetsToSave.map((m: MagnetInfo) => m.hash));
+              // 更新页面状态，只记录已执行过默认保存
               await this.pageStateManager.setDefaultSaved();
               // 显示信息面板
               this.showPanel(magnets);
@@ -169,6 +135,166 @@ class MagnetPicker {
       console.error('MagnetPicker: 解析出错:', error);
       this.showErrorMessage('解析出错，请重试');
     }
+  }
+
+  private async showPanel(magnets: MagnetInfo[]): Promise<void> {
+    console.log('MagnetPicker: 准备显示面板');
+    if (!this.panelContainer || !this.root) {
+      console.error('MagnetPicker: 面板容器或根节点不存在，重新创建');
+      this.createPanelContainer();
+    }
+
+    // 设置面板可见状态
+    this.isPanelVisible = true;
+
+    // 获取实际的保存状态
+    const savedStates = await this.pageStateManager.getSavedMagnetStates(magnets);
+
+    const handleClose = () => {
+      if (!this.isPanelVisible) return;
+      console.log('MagnetPicker: 关闭面板');
+      this.isPanelVisible = false;
+      this.root.render(null);
+      if (this.panelContainer) {
+        this.panelContainer.style.display = 'none';
+      }
+    };
+
+    // 处理保存和取消保存磁力链接
+    const handleToggleSave = (magnet: MagnetInfo, isSaved: boolean) => {
+      if (isSaved) {
+        // 取消保存
+        console.log('MagnetPicker: 取消保存磁力链接:', magnet.fileName);
+        chrome.runtime.sendMessage({
+          type: 'REMOVE_MAGNET',
+          data: magnet
+        }, async (response) => {
+          if (response?.success) {
+            // 重新获取最新状态并更新面板
+            this.showPanel(magnets);
+            this.showSuccessMessage('已取消保存');
+          } else {
+            this.showErrorMessage('取消保存失败，请重试');
+          }
+        });
+      } else {
+        // 保存
+        console.log('MagnetPicker: 保存磁力链接:', magnet.fileName);
+        chrome.runtime.sendMessage({
+          type: 'SAVE_MAGNETS',
+          data: [magnet]
+        }, async (response) => {
+          if (response?.success) {
+            // 重新获取最新状态并更新面板
+            this.showPanel(magnets);
+            this.showSuccessMessage('保存成功');
+          } else {
+            this.showErrorMessage('保存失败，请重试');
+          }
+        });
+      }
+    };
+
+    // 按评分排序磁力链接
+    const sortedMagnets = sortMagnetsByScore(magnets);
+    console.log('MagnetPicker: 按评分排序后的磁力链接:', sortedMagnets);
+
+    // 渲染面板
+    this.root.render(
+      <MagnetPanel
+        magnets={sortedMagnets}
+        savedStates={savedStates}
+        onClose={handleClose}
+        onToggleSave={handleToggleSave}
+      />
+    );
+
+    if (this.panelContainer) {
+      this.panelContainer.style.display = 'block';
+    }
+
+    // 添加点击事件监听器到 document
+    const handleDocumentClick = (e: MouseEvent) => {
+      // 如果点击的是按钮，不关闭面板
+      if (this.button && this.button.contains(e.target as Node)) {
+        return;
+      }
+      
+      // 如果点击的是面板内部，不关闭面板
+      if (this.panelContainer && this.panelContainer.contains(e.target as Node)) {
+        return;
+      }
+
+      console.log('MagnetPicker: 点击面板外部，关闭面板');
+      handleClose();
+      document.removeEventListener('click', handleDocumentClick);
+    };
+
+    // 延迟添加事件监听器，避免立即触发
+    setTimeout(() => {
+      document.addEventListener('click', handleDocumentClick);
+      console.log('MagnetPicker: 添加了点击事件监听器');
+    }, 100);
+  }
+
+  private showErrorMessage(message: string): void {
+    console.error('MagnetPicker: 显示错误消息:', message);
+    const toast = document.createElement('div');
+    toast.className = 'magnet-picker-toast magnet-picker-toast-error';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+
+  private showSuccessMessage(message: string): void {
+    console.log('MagnetPicker: 显示成功消息:', message);
+    const toast = document.createElement('div');
+    toast.className = 'magnet-picker-toast magnet-picker-toast-success';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+
+  private async findMagnets(): Promise<MagnetInfo[]> {
+    // 等待磁力链接加载完成
+    await this.waitForMagnets();
+
+    const magnets: MagnetInfo[] = [];
+    // 查找所有包含磁力链接的行
+    const rows = document.querySelectorAll('tr[onmouseover]');
+    console.log('MagnetPicker: 找到行数:', rows.length);
+
+    rows.forEach((row, index) => {
+      const cells = row.querySelectorAll('td');
+      console.log(`MagnetPicker: 第${index + 1}行单元格数:`, cells.length);
+
+      if (cells.length >= 3) {
+        // 从第一个单元格中获取磁力链接
+        const firstCell = cells[0];
+        const magnetLink = firstCell.querySelector('a[href^="magnet:"]');
+        const hdTag = firstCell.querySelector('.btn-primary.disabled');
+        
+        if (magnetLink) {
+          const magnetUrl = magnetLink.getAttribute('href') || '';
+          const hashMatch = magnetUrl.match(/btih:([A-Fa-f0-9]{40})/);
+          const hash = hashMatch ? hashMatch[1].toUpperCase() : '';
+          
+          const magnetInfo: MagnetInfo = {
+            url: magnetUrl,
+            fileName: `${magnetLink.textContent?.trim() || ''}${hdTag ? ' [HD]' : ''}`,
+            fileSize: parseFileSize(cells[1].textContent?.trim() || '0'),
+            date: cells[2].textContent?.trim() || '',
+            hash: hash,
+            saveTime: new Date().toISOString()
+          };
+          console.log('MagnetPicker: 解析到磁力链接:', magnetInfo);
+          magnets.push(magnetInfo);
+        }
+      }
+    });
+
+    console.log('MagnetPicker: 解析完成，找到磁力链接数:', magnets.length);
+    return magnets;
   }
 
   private waitForMagnets(): Promise<void> {
@@ -195,130 +321,6 @@ class MagnetPicker {
 
       checkMagnets();
     });
-  }
-
-  private showPanel(magnets: MagnetInfo[]): void {
-    console.log('MagnetPicker: 准备显示面板');
-    if (!this.panelContainer || !this.root) {
-      console.error('MagnetPicker: 面板容器或根节点不存在，重新创建');
-      this.createPanelContainer();
-    }
-
-    // 设置面板可见状态
-    this.isPanelVisible = true;
-
-    const handleClose = () => {
-      if (!this.isPanelVisible) return;
-      console.log('MagnetPicker: 关闭面板');
-      this.isPanelVisible = false;
-      this.root.render(null);
-      if (this.panelContainer) {
-        this.panelContainer.style.display = 'none';
-      }
-    };
-
-    // 处理保存和取消保存磁力链接
-    const handleToggleSave = (magnet: MagnetInfo, isSaved: boolean) => {
-      if (isSaved) {
-        // 取消保存
-        console.log('MagnetPicker: 取消保存磁力链接:', magnet.fileName);
-        chrome.runtime.sendMessage({
-          type: 'REMOVE_MAGNET',
-          data: magnet
-        }, async (response) => {
-          if (response?.success) {
-            await this.pageStateManager.removeSavedMagnet(magnet.hash);
-            this.showPanel(magnets);
-            this.showSuccessMessage('已取消保存');
-          } else {
-            this.showErrorMessage('取消保存失败，请重试');
-          }
-        });
-      } else {
-        // 保存
-        console.log('MagnetPicker: 保存磁力链接:', magnet.fileName);
-        chrome.runtime.sendMessage({
-          type: 'SAVE_MAGNETS',
-          data: [magnet]
-        }, async (response) => {
-          if (response?.success) {
-            await this.pageStateManager.addSavedMagnets([magnet.hash]);
-            this.showPanel(magnets);
-            this.showSuccessMessage('保存成功');
-          } else {
-            this.showErrorMessage('保存失败，请重试');
-          }
-        });
-      }
-    };
-
-    // 添加点击事件监听器到 document
-    const handleDocumentClick = (e: MouseEvent) => {
-      // 如果点击的是按钮，不关闭面板
-      if (this.button && this.button.contains(e.target as Node)) {
-        return;
-      }
-      
-      // 如果点击的是面板内部，不关闭面板
-      if (this.panelContainer && this.panelContainer.contains(e.target as Node)) {
-        return;
-      }
-
-      console.log('MagnetPicker: 点击面板外部，关闭面板');
-      handleClose();
-      document.removeEventListener('click', handleDocumentClick);
-    };
-
-    // 延迟添加事件监听器，避免立即触发
-    setTimeout(() => {
-      document.addEventListener('click', handleDocumentClick);
-      console.log('MagnetPicker: 添加了点击事件监听器');
-    }, 100);
-
-    // 确保面板容器可见
-    if (this.panelContainer) {
-      this.panelContainer.style.display = 'block';
-      console.log('MagnetPicker: 设置面板容器为可见');
-    }
-
-    // 获取已保存的磁力链接列表
-    const savedMagnetHashes = this.pageStateManager.getSavedMagnets();
-    const savedMagnets = magnets.filter(m => savedMagnetHashes.includes(m.hash));
-
-    // 按评分排序磁力链接
-    const sortedMagnets = sortMagnetsByScore(magnets);
-    console.log('MagnetPicker: 按评分排序后的磁力链接:', sortedMagnets);
-
-    console.log('MagnetPanel: 渲染面板组件');
-    this.root.render(
-      <MagnetPanel 
-        magnets={sortedMagnets} 
-        savedMagnets={savedMagnets}
-        onClose={() => {
-          handleClose();
-          document.removeEventListener('click', handleDocumentClick);
-        }}
-        onToggleSave={handleToggleSave}
-      />
-    );
-  }
-
-  private showErrorMessage(message: string): void {
-    console.error('MagnetPicker: 显示错误消息:', message);
-    const toast = document.createElement('div');
-    toast.className = 'magnet-picker-toast magnet-picker-toast-error';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-  }
-
-  private showSuccessMessage(message: string): void {
-    console.log('MagnetPicker: 显示成功消息:', message);
-    const toast = document.createElement('div');
-    toast.className = 'magnet-picker-toast magnet-picker-toast-success';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
   }
 }
 

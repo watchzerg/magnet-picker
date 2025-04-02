@@ -199,6 +199,26 @@
   background-color: rgba(59, 130, 246, 0.2);
 }
 
+.magnet-item-metrics {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.magnet-item-size,
+.magnet-item-score {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: rgba(107, 114, 128, 0.1);
+  white-space: nowrap;
+}
+
+.magnet-item-score {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: rgb(37, 99, 235);
+}
+
 /* 暗色模式支持 */
 @media (prefers-color-scheme: dark) {
   .magnet-picker-button {
@@ -269,6 +289,17 @@
   }
 
   .magnet-item-badge-unsaved {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: rgb(147, 197, 253);
+  }
+
+  .magnet-item-size,
+  .magnet-item-score {
+    background-color: rgba(107, 114, 128, 0.2);
+    color: #e5e7eb;
+  }
+
+  .magnet-item-score {
     background-color: rgba(59, 130, 246, 0.2);
     color: rgb(147, 197, 253);
   }

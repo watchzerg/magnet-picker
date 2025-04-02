@@ -17,7 +17,6 @@ export interface StorageData {
 // 页面状态接口
 export interface PageState {
   url: string;             // 页面URL
-  savedMagnets: string[];  // 已保存的磁力链接哈希值
   hasDefaultSave: boolean; // 是否已执行过默认保存
   lastUpdate: number;      // 最后更新时间戳
 }

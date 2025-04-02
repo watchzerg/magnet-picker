@@ -1,25 +1,28 @@
 import React from 'react';
 import { MagnetInfo } from '../types/magnet';
-import { formatFileSize } from '../utils/magnet';
+import { formatFileSize, calculateMagnetScores } from '../utils/magnet';
 
 interface MagnetPanelProps {
   magnets: MagnetInfo[];
-  savedMagnets: MagnetInfo[];
+  savedStates: Map<string, boolean>;
   onClose: () => void;
   onToggleSave: (magnet: MagnetInfo, isSaved: boolean) => void;
 }
 
 export const MagnetPanel: React.FC<MagnetPanelProps> = ({ 
   magnets, 
-  savedMagnets, 
+  savedStates, 
   onClose,
   onToggleSave 
 }) => {
   console.log('MagnetPanel: 渲染面板，磁力链接数量:', magnets.length);
   
+  // 计算所有磁力链接的评分
+  const magnetScores = calculateMagnetScores(magnets);
+  
   // 判断磁力链接是否已保存
   const isMagnetSaved = (magnet: MagnetInfo) => {
-    return savedMagnets.some(saved => saved.hash === magnet.hash);
+    return savedStates.get(magnet.hash) || false;
   };
 
   const handleMagnetClick = (magnet: MagnetInfo, isSaved: boolean) => {
@@ -56,54 +59,34 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
       <div className="magnet-panel-content">
         {magnets.map((magnet) => {
           const isSaved = isMagnetSaved(magnet);
+          const score = magnetScores.find(s => s.magnet.hash === magnet.hash);
           return (
-            <div 
+            <div
               key={magnet.hash}
               className={`magnet-item ${isSaved ? 'magnet-item-saved' : 'magnet-item-unsaved'}`}
               onClick={() => handleMagnetClick(magnet, isSaved)}
-              role="button"
-              tabIndex={0}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  handleMagnetClick(magnet, isSaved);
-                }
-              }}
             >
-              <div className="magnet-item-content">
-                <div className="magnet-item-header">
-                  <span className="magnet-item-title">
-                    {magnet.fileName}
-                  </span>
-                  {isSaved ? (
-                    <span className="magnet-item-badge">
-                      已保存 - 点击取消
-                    </span>
-                  ) : (
-                    <span className="magnet-item-badge magnet-item-badge-unsaved">
-                      点击保存
-                    </span>
-                  )}
+              <div className="magnet-item-title">
+                {magnet.fileName}
+                <span className={`magnet-item-badge ${isSaved ? '' : 'magnet-item-badge-unsaved'}`}>
+                  {isSaved ? '已保存' : '未保存'}
+                </span>
+              </div>
+              <div className="magnet-item-info">
+                <div className="magnet-item-metrics">
+                  <span className="magnet-item-size">大小: {formatFileSize(magnet.fileSize)}</span>
+                  <span className="magnet-item-score">评分: {formatFileSize(score?.finalScore || 0)}</span>
                 </div>
-                <div className="magnet-item-info">
-                  <span>{formatFileSize(magnet.fileSize)}</span>
-                  <span>•</span>
-                  <span>Hash: {magnet.hash.slice(0, 6)}</span>
-                  <a
-                    href={magnet.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      console.log('MagnetPanel: 点击下载链接:', magnet.fileName);
-                    }}
-                    className={`magnet-item-download ${
-                      isSaved ? 'magnet-item-download-saved' : 'magnet-item-download-unsaved'
-                    }`}
-                    title="下载"
-                  >
-                    下载
-                  </a>
-                </div>
+                <span>{magnet.date}</span>
+                <a
+                  href={magnet.url}
+                  className={`magnet-item-download ${isSaved ? 'magnet-item-download-saved' : ''}`}
+                  onClick={(e) => e.stopPropagation()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  下载
+                </a>
               </div>
             </div>
           );

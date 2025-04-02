@@ -1,4 +1,5 @@
 import { PageState } from '../types';
+import { MagnetInfo } from '../types/magnet';
 
 export class PageStateManager {
   private url: string;
@@ -12,10 +13,9 @@ export class PageStateManager {
   async init(): Promise<void> {
     const state = await this.getState();
     if (!state) {
-      // 创建新的页面状态
+      // 创建新的页面状态，只保存是否已执行默认保存的状态
       this.state = {
         url: this.url,
-        savedMagnets: [],
         hasDefaultSave: false,
         lastUpdate: Date.now()
       };
@@ -71,26 +71,6 @@ export class PageStateManager {
     }
   }
 
-  // 添加已保存的磁力链接
-  async addSavedMagnets(hashes: string[]): Promise<void> {
-    if (!this.state) return;
-
-    // 添加新的哈希值，确保不重复
-    const newHashes = hashes.filter(hash => !this.state?.savedMagnets.includes(hash));
-    if (newHashes.length > 0) {
-      this.state.savedMagnets = [...this.state.savedMagnets, ...newHashes];
-      await this.saveState();
-    }
-  }
-
-  // 移除已保存的磁力链接
-  async removeSavedMagnet(hash: string): Promise<void> {
-    if (!this.state) return;
-
-    this.state.savedMagnets = this.state.savedMagnets.filter(h => h !== hash);
-    await this.saveState();
-  }
-
   // 设置默认保存状态
   async setDefaultSaved(): Promise<void> {
     if (!this.state) return;
@@ -104,9 +84,21 @@ export class PageStateManager {
     return this.state?.hasDefaultSave || false;
   }
 
-  // 获取已保存的磁力链接哈希值列表
-  getSavedMagnets(): string[] {
-    return this.state?.savedMagnets || [];
+  // 获取实际保存的磁力链接状态
+  async getSavedMagnetStates(currentMagnets: MagnetInfo[]): Promise<Map<string, boolean>> {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage({ type: 'GET_MAGNETS' }, (savedMagnets: MagnetInfo[]) => {
+        const savedHashes = new Set(savedMagnets.map(m => m.hash));
+        const states = new Map<string, boolean>();
+        
+        // 对当前页面的每个magnet，检查是否在已保存列表中
+        currentMagnets.forEach(magnet => {
+          states.set(magnet.hash, savedHashes.has(magnet.hash));
+        });
+        
+        resolve(states);
+      });
+    });
   }
 
   // 清理过期的页面状态（可选，在合适的时机调用）
