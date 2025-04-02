@@ -1,7 +1,7 @@
 /// <reference types="chrome"/>
 
+import { createRoot, Root as ReactDOMRoot } from 'react-dom/client';
 import { MagnetInfo } from '../types/magnet';
-import { createRoot } from 'react-dom/client';
 import { MagnetPanel } from '../components/MagnetPanel';
 import { PageStateManager } from '../utils/pageStateManager';
 import { parseFileSize, selectMagnetsByScore, sortMagnetsByScore } from '../utils/magnet';
@@ -9,14 +9,99 @@ import { parseFileSize, selectMagnetsByScore, sortMagnetsByScore } from '../util
 class MagnetPicker {
   private button: HTMLButtonElement | null = null;
   private panelContainer: HTMLDivElement | null = null;
-  private root: any = null;
+  private root: ReactDOMRoot | null = null;
   private isPanelVisible: boolean = false;
   private pageStateManager: PageStateManager;
+  private currentMagnets: MagnetInfo[] = [];
+  private storageChangeListener: ((changes: { [key: string]: chrome.storage.StorageChange }) => void) | null = null;
 
   constructor() {
     console.log('MagnetPicker: 初始化');
     this.pageStateManager = new PageStateManager(window.location.href);
+    this.initStorageListener();
     this.init();
+  }
+
+  private initStorageListener() {
+    this.storageChangeListener = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+      if (changes.magnets && this.isPanelVisible) {
+        console.log('MagnetPicker: 检测到磁力链接存储变化，更新面板状态');
+        // 重新获取当前磁力链接的保存状态并更新面板
+        this.pageStateManager.getSavedMagnetStates(this.currentMagnets).then(savedStates => {
+          if (this.root && this.panelContainer) {
+            this.root.render(
+              <MagnetPanel
+                magnets={sortMagnetsByScore(this.currentMagnets)}
+                savedStates={savedStates}
+                onClose={() => this.closePanel()}
+                onToggleSave={this.handleToggleSave.bind(this)}
+              />
+            );
+          }
+        });
+      }
+    };
+
+    chrome.storage.onChanged.addListener(this.storageChangeListener);
+  }
+
+  private closePanel() {
+    if (!this.isPanelVisible) return;
+    console.log('MagnetPicker: 关闭面板');
+    this.isPanelVisible = false;
+    if (this.root) {
+      this.root.render(null);
+    }
+    if (this.panelContainer) {
+      this.panelContainer.style.display = 'none';
+    }
+  }
+
+  private handleToggleSave(magnet: MagnetInfo, isSaved: boolean) {
+    if (isSaved) {
+      // 取消保存
+      console.log('MagnetPicker: 取消保存磁力链接:', magnet.fileName);
+      chrome.runtime.sendMessage({
+        type: 'REMOVE_MAGNET',
+        data: magnet
+      }, async (response) => {
+        if (response?.success) {
+          this.showSuccessMessage('已取消保存');
+        } else {
+          this.showErrorMessage('取消保存失败，请重试');
+        }
+      });
+    } else {
+      // 保存
+      console.log('MagnetPicker: 保存磁力链接:', magnet.fileName);
+      chrome.runtime.sendMessage({
+        type: 'SAVE_MAGNETS',
+        data: [magnet]
+      }, async (response) => {
+        if (response?.success) {
+          this.showSuccessMessage('保存成功');
+        } else {
+          this.showErrorMessage('保存失败，请重试');
+        }
+      });
+    }
+  }
+
+  public destroy() {
+    console.log('MagnetPicker: 销毁实例');
+    if (this.storageChangeListener) {
+      chrome.storage.onChanged.removeListener(this.storageChangeListener);
+    }
+    this.closePanel();
+    if (this.button) {
+      this.button.remove();
+      this.button = null;
+    }
+    if (this.panelContainer) {
+      this.panelContainer.remove();
+      this.panelContainer = null;
+    }
+    this.root = null;
   }
 
   private async init(): Promise<void> {
@@ -144,68 +229,32 @@ class MagnetPicker {
       this.createPanelContainer();
     }
 
+    // 保存当前磁力链接列表
+    this.currentMagnets = magnets;
+
     // 设置面板可见状态
     this.isPanelVisible = true;
 
     // 获取实际的保存状态
     const savedStates = await this.pageStateManager.getSavedMagnetStates(magnets);
 
-    const handleClose = () => {
-      if (!this.isPanelVisible) return;
-      console.log('MagnetPicker: 关闭面板');
-      this.isPanelVisible = false;
-      this.root.render(null);
-      if (this.panelContainer) {
-        this.panelContainer.style.display = 'none';
-      }
-    };
-
-    // 处理保存和取消保存磁力链接
-    const handleToggleSave = (magnet: MagnetInfo, isSaved: boolean) => {
-      if (isSaved) {
-        // 取消保存
-        console.log('MagnetPicker: 取消保存磁力链接:', magnet.fileName);
-        chrome.runtime.sendMessage({
-          type: 'REMOVE_MAGNET',
-          data: magnet
-        }, async (response) => {
-          if (response?.success) {
-            // 重新获取最新状态并更新面板
-            this.showPanel(magnets);
-            this.showSuccessMessage('已取消保存');
-          } else {
-            this.showErrorMessage('取消保存失败，请重试');
-          }
-        });
-      } else {
-        // 保存
-        console.log('MagnetPicker: 保存磁力链接:', magnet.fileName);
-        chrome.runtime.sendMessage({
-          type: 'SAVE_MAGNETS',
-          data: [magnet]
-        }, async (response) => {
-          if (response?.success) {
-            // 重新获取最新状态并更新面板
-            this.showPanel(magnets);
-            this.showSuccessMessage('保存成功');
-          } else {
-            this.showErrorMessage('保存失败，请重试');
-          }
-        });
-      }
-    };
-
     // 按评分排序磁力链接
     const sortedMagnets = sortMagnetsByScore(magnets);
     console.log('MagnetPicker: 按评分排序后的磁力链接:', sortedMagnets);
+
+    // 确保 root 存在
+    if (!this.root) {
+      console.error('MagnetPicker: root 不存在，无法渲染面板');
+      return;
+    }
 
     // 渲染面板
     this.root.render(
       <MagnetPanel
         magnets={sortedMagnets}
         savedStates={savedStates}
-        onClose={handleClose}
-        onToggleSave={handleToggleSave}
+        onClose={() => this.closePanel()}
+        onToggleSave={this.handleToggleSave.bind(this)}
       />
     );
 
@@ -226,7 +275,7 @@ class MagnetPicker {
       }
 
       console.log('MagnetPicker: 点击面板外部，关闭面板');
-      handleClose();
+      this.closePanel();
       document.removeEventListener('click', handleDocumentClick);
     };
 
