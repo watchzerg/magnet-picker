@@ -38,6 +38,12 @@ const RuleActions: React.FC<RuleActionsProps> = ({ onAddRule }) => {
             >
                 添加正则表达式规则
             </button>
+            <button
+                onClick={() => onAddRule(RuleType.SHARE_DATE)}
+                className="px-3 py-1 text-sm text-white bg-blue-500 rounded hover:bg-blue-600"
+            >
+                添加分享日期规则
+            </button>
         </div>
     );
 };

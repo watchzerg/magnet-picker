@@ -12,6 +12,8 @@ export const getRuleTypeName = (type: RuleType): string => {
             return '文件扩展名规则';
         case RuleType.FILENAME_REGEX:
             return '正则表达式规则';
+        case RuleType.SHARE_DATE:
+            return '分享日期规则';
         default:
             return '未知规则';
     }
@@ -52,6 +54,18 @@ export const getRulePreview = (type: RuleType, config: RuleConfig): string => {
         case RuleType.FILENAME_REGEX: {
             const regexConfig = config as any;
             return regexConfig.pattern || '未设置正则';
+        }
+        case RuleType.SHARE_DATE: {
+            const shareDateConfig = config as any;
+            if (!shareDateConfig.date) return '未设置日期';
+            
+            const conditionMap: Record<string, string> = {
+                'before': '早于',
+                'equal': '等于',
+                'after': '晚于'
+            };
+            
+            return `${conditionMap[shareDateConfig.condition]} ${shareDateConfig.date}`;
         }
         default:
             return '';

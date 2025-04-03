@@ -42,6 +42,13 @@ export const validateRule = (type: RuleType, config: RuleConfig): { isValid: boo
                 return { isValid: false, message: '无效的正则表达式' };
             }
         }
+        case RuleType.SHARE_DATE: {
+            const shareDateConfig = config as any;
+            if (!shareDateConfig.date) {
+                return { isValid: false, message: '请选择日期' };
+            }
+            return { isValid: true };
+        }
         default:
             return { isValid: false, message: '未知的规则类型' };
     }

@@ -143,6 +143,15 @@ const RuleList: React.FC<RuleListProps> = ({ rules, initialSettings, onChange, o
                     stopOnMatch: false
                 };
                 break;
+            case RuleType.SHARE_DATE:
+                config = {
+                    type: RuleType.SHARE_DATE,
+                    condition: 'after',
+                    date: new Date().toISOString().split('T')[0], // 当前日期，格式为 YYYY-MM-DD
+                    scoreMultiplier: 1.0,
+                    stopOnMatch: false
+                };
+                break;
             default:
                 throw new Error('Unknown rule type');
         }

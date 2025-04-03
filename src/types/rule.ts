@@ -4,7 +4,8 @@ export enum RuleType {
     FILENAME_CONTAINS = 'FILENAME_CONTAINS',
     FILENAME_SUFFIX = 'FILENAME_SUFFIX',
     FILE_EXTENSION = 'FILE_EXTENSION',
-    FILENAME_REGEX = 'FILENAME_REGEX'
+    FILENAME_REGEX = 'FILENAME_REGEX',
+    SHARE_DATE = 'SHARE_DATE'
 }
 
 // 基础规则配置接口
@@ -45,13 +46,21 @@ export interface FilenameRegexRuleConfig extends BaseRuleConfig {
     pattern: string;
 }
 
+// 文件分享日期规则配置
+export interface ShareDateRuleConfig extends BaseRuleConfig {
+    type: RuleType.SHARE_DATE;
+    condition: 'before' | 'equal' | 'after';
+    date: string;  // ISO格式的日期字符串，如 "2023-01-01"
+}
+
 // 所有规则配置的联合类型
 export type RuleConfig = 
     | FileSizeRuleConfig 
     | FilenameContainsRuleConfig 
     | FilenameSuffixRuleConfig 
     | FileExtensionRuleConfig 
-    | FilenameRegexRuleConfig;
+    | FilenameRegexRuleConfig
+    | ShareDateRuleConfig;
 
 // 规则基础接口
 export interface MagnetRule {
@@ -127,6 +136,16 @@ export const validateRule = (type: RuleType, config: RuleConfig): RuleValidation
                 return {
                     isValid: false,
                     message: '无效的正则表达式'
+                };
+            }
+            break;
+        }
+        case RuleType.SHARE_DATE: {
+            const shareDateConfig = config as ShareDateRuleConfig;
+            if (!shareDateConfig.date) {
+                return {
+                    isValid: false,
+                    message: '请选择日期'
                 };
             }
             break;

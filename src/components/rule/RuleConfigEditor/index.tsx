@@ -5,6 +5,7 @@ import FilenameContainsEditor from './FilenameContainsEditor';
 import FilenameSuffixEditor from './FilenameSuffixEditor';
 import FileExtensionEditor from './FileExtensionEditor';
 import FilenameRegexEditor from './FilenameRegexEditor';
+import ShareDateEditor from './ShareDateEditor';
 
 interface RuleConfigEditorProps {
     type: RuleType;
@@ -45,6 +46,13 @@ const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({ type, config, onCha
         case RuleType.FILENAME_REGEX:
             return (
                 <FilenameRegexEditor
+                    config={config as any}
+                    onChange={onChange}
+                />
+            );
+        case RuleType.SHARE_DATE:
+            return (
+                <ShareDateEditor
                     config={config as any}
                     onChange={onChange}
                 />
