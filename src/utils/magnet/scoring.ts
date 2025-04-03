@@ -21,19 +21,6 @@ interface MagnetSettings {
   targetCount: number;
 }
 
-/**
- * 从文件名中提取不含扩展名的部分
- * @param fileName 完整文件名
- * @returns 不含扩展名的文件名
- */
-const getFileNameWithoutExtension = (fileName: string): string => {
-  // 移除HD标记
-  const nameWithoutHD = fileName.replace(/\s*\[HD\]\s*$/, '');
-  // 获取最后一个点之前的部分
-  const lastDotIndex = nameWithoutHD.lastIndexOf('.');
-  return lastDotIndex > 0 ? nameWithoutHD.substring(0, lastDotIndex) : nameWithoutHD;
-};
-
 export const calculateMagnetScores = async (magnets: MagnetInfo[]): Promise<MagnetScore[]> => {
   console.log('开始计算磁力链接评分...');
 
@@ -41,20 +28,12 @@ export const calculateMagnetScores = async (magnets: MagnetInfo[]): Promise<Magn
   const result = await chrome.storage.local.get(['magnetRules']);
   const rules: MagnetRule[] = result.magnetRules || [];
   
-  // 获取启用的文件大小规则，并按order排序
+  // 只获取启用的文件大小规则，并按order排序
   const fileSizeRules = rules
     .filter(rule => rule.enabled && rule.type === RuleType.FILE_SIZE)
     .sort((a, b) => a.order - b.order);
 
-  // 获取启用的文件名关键字规则，并按order排序
-  const filenameContainsRules = rules
-    .filter(rule => rule.enabled && rule.type === RuleType.FILENAME_CONTAINS)
-    .sort((a, b) => a.order - b.order);
-
-  console.log('启用的规则:', {
-    文件大小规则: fileSizeRules.length,
-    文件名关键字规则: filenameContainsRules.length
-  });
+  console.log('启用的文件大小规则:', fileSizeRules.length);
 
   return magnets.map(magnet => {
     // 初始评分系数为 1.0 score/byte
@@ -70,23 +49,7 @@ export const calculateMagnetScores = async (magnets: MagnetInfo[]): Promise<Magn
         
         if (matches) {
           scoreMultiplier *= config.scoreMultiplier;
-          console.log(`[规则匹配] ${magnet.fileName}: 文件大小规则 ${rule.id} 匹配成功，得分系数变为 ${scoreMultiplier}`);
-        }
-      }
-    }
-
-    // 应用文件名关键字规则
-    const fileNameWithoutExtension = getFileNameWithoutExtension(magnet.fileName);
-    for (const rule of filenameContainsRules) {
-      const config = rule.config;
-      if (config.type === RuleType.FILENAME_CONTAINS) {
-        const matches = config.keywords.some(keyword => 
-          fileNameWithoutExtension.toLowerCase().includes(keyword.toLowerCase())
-        );
-        
-        if (matches) {
-          scoreMultiplier *= config.scoreMultiplier;
-          console.log(`[规则匹配] ${magnet.fileName}: 文件名关键字规则 ${rule.id} 匹配成功，得分系数变为 ${scoreMultiplier}`);
+          console.log(`[规则匹配] ${magnet.fileName}: 规则 ${rule.id} 匹配成功，得分系数变为 ${scoreMultiplier}`);
         }
       }
     }
@@ -98,8 +61,7 @@ export const calculateMagnetScores = async (magnets: MagnetInfo[]): Promise<Magn
     console.log(`[评分] ${magnet.fileName}:`, {
       defaultScore: `${formatFileSize(defaultScore)} (${defaultScore} Bytes)`,
       finalScore: `${formatFileSize(finalScore)} (${finalScore} score)`,
-      scoreMultiplier: scoreMultiplier,
-      fileNameWithoutExtension: fileNameWithoutExtension
+      scoreMultiplier: scoreMultiplier
     });
 
     return { magnet, defaultScore, finalScore };
@@ -137,8 +99,7 @@ export const selectMagnetsByScore = async (magnets: MagnetInfo[]): Promise<Magne
     匹配数量: firstLevelMagnets.length,
     匹配项: firstLevelMagnets.map(m => ({
       文件名: m.fileName,
-      大小: formatFileSize(m.fileSize),
-      得分: formatFileSize(scoredMagnets.find(s => s.magnet.hash === m.hash)?.finalScore || 0)
+      大小: formatFileSize(m.fileSize)
     }))
   });
   
@@ -149,8 +110,7 @@ export const selectMagnetsByScore = async (magnets: MagnetInfo[]): Promise<Magne
       实际选择: selected.length,
       选中项: selected.map(m => ({
         文件名: m.fileName,
-        大小: formatFileSize(m.fileSize),
-        得分: formatFileSize(scoredMagnets.find(s => s.magnet.hash === m.hash)?.finalScore || 0)
+        大小: formatFileSize(m.fileSize)
       }))
     });
     return selected;
@@ -158,7 +118,8 @@ export const selectMagnetsByScore = async (magnets: MagnetInfo[]): Promise<Magne
   
   // 第二级筛选：最终评分 > 优选阈值
   const remainingMagnets = sortedByScore
-    .filter(item => item.finalScore <= settings.requiredThreshold);
+    .filter(item => item.finalScore <= settings.requiredThreshold)
+    .sort((a, b) => b.magnet.fileSize - a.magnet.fileSize);
   
   const secondLevelMagnets = remainingMagnets
     .filter(item => item.finalScore > settings.preferredThreshold)
@@ -170,8 +131,7 @@ export const selectMagnetsByScore = async (magnets: MagnetInfo[]): Promise<Magne
     总数量: combinedSecondLevel.length,
     新增项: secondLevelMagnets.map(m => ({
       文件名: m.fileName,
-      大小: formatFileSize(m.fileSize),
-      得分: formatFileSize(scoredMagnets.find(s => s.magnet.hash === m.hash)?.finalScore || 0)
+      大小: formatFileSize(m.fileSize)
     }))
   });
   
@@ -182,14 +142,13 @@ export const selectMagnetsByScore = async (magnets: MagnetInfo[]): Promise<Magne
       实际选择: selected.length,
       选中项: selected.map(m => ({
         文件名: m.fileName,
-        大小: formatFileSize(m.fileSize),
-        得分: formatFileSize(scoredMagnets.find(s => s.magnet.hash === m.hash)?.finalScore || 0)
+        大小: formatFileSize(m.fileSize)
       }))
     });
     return selected;
   }
   
-  // 第三级筛选：剩余磁力链接按最终得分排序
+  // 第三级筛选：剩余磁力链接按体积排序
   const finalRemainingMagnets = remainingMagnets
     .filter(item => item.finalScore <= settings.preferredThreshold)
     .map(item => item.magnet);
@@ -200,8 +159,7 @@ export const selectMagnetsByScore = async (magnets: MagnetInfo[]): Promise<Magne
     实际选择: finalMagnets.length,
     选中项: finalMagnets.map(m => ({
       文件名: m.fileName,
-      大小: formatFileSize(m.fileSize),
-      得分: formatFileSize(scoredMagnets.find(s => s.magnet.hash === m.hash)?.finalScore || 0)
+      大小: formatFileSize(m.fileSize)
     }))
   });
   
