@@ -133,7 +133,7 @@ export class MagnetService {
   /**
    * 选择要保存的磁力链接
    */
-  public selectMagnetsToSave(magnets: MagnetInfo[]): MagnetInfo[] {
+  public async selectMagnetsToSave(magnets: MagnetInfo[]): Promise<MagnetInfo[]> {
     return selectMagnetsByScore(magnets);
   }
 } 

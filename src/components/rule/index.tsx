@@ -4,6 +4,11 @@ import RuleList from './RuleList';
 
 interface RuleManagerProps {
     initialRules: MagnetRule[];
+    initialSettings: {
+        requiredThreshold: number;
+        preferredThreshold: number;
+        targetCount: number;
+    };
     onRulesChange: (rules: MagnetRule[]) => void;
     onSettingsChange: (settings: {
         requiredThreshold: number;
@@ -14,6 +19,7 @@ interface RuleManagerProps {
 
 const RuleManager: React.FC<RuleManagerProps> = ({
     initialRules,
+    initialSettings,
     onRulesChange,
     onSettingsChange
 }) => {
@@ -30,6 +36,7 @@ const RuleManager: React.FC<RuleManagerProps> = ({
                 rules={rules}
                 onChange={handleRulesChange}
                 onSettingsChange={onSettingsChange}
+                initialSettings={initialSettings}
             />
         </div>
     );

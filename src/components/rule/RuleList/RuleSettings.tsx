@@ -1,6 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface RuleSettingsProps {
+    initialSettings: {
+        requiredThreshold: number;
+        preferredThreshold: number;
+        targetCount: number;
+    };
     onSettingsChange: (settings: {
         requiredThreshold: number;
         preferredThreshold: number;
@@ -31,21 +36,56 @@ const DEFAULT_PREFERRED_OPTIONS = [
     { value: 'custom', label: '自定义' }
 ];
 
-const RuleSettings: React.FC<RuleSettingsProps> = ({ onSettingsChange }) => {
+const RuleSettings: React.FC<RuleSettingsProps> = ({ initialSettings, onSettingsChange }) => {
     // 必选阈值状态
-    const [requiredThreshold, setRequiredThreshold] = useState(10 * 1024 * 1024 * 1024); // 10G-score
+    const [requiredThreshold, setRequiredThreshold] = useState(initialSettings.requiredThreshold);
     const [isCustomRequired, setIsCustomRequired] = useState(false);
     const [customRequiredValue, setCustomRequiredValue] = useState('10');
     const [customRequiredUnit, setCustomRequiredUnit] = useState('G');
 
     // 优选阈值状态
-    const [preferredThreshold, setPreferredThreshold] = useState(5 * 1024 * 1024 * 1024); // 5G-score
+    const [preferredThreshold, setPreferredThreshold] = useState(initialSettings.preferredThreshold);
     const [isCustomPreferred, setIsCustomPreferred] = useState(false);
     const [customPreferredValue, setCustomPreferredValue] = useState('5');
     const [customPreferredUnit, setCustomPreferredUnit] = useState('G');
 
     // 目标数量状态
-    const [targetCount, setTargetCount] = useState(5);
+    const [targetCount, setTargetCount] = useState(initialSettings.targetCount);
+
+    // 初始化时检查是否使用自定义值
+    useEffect(() => {
+        // 检查必选阈值是否为预设值
+        const isRequiredCustom = !DEFAULT_REQUIRED_OPTIONS.some(
+            option => option.value !== 'custom' && option.value === initialSettings.requiredThreshold
+        );
+        if (isRequiredCustom) {
+            setIsCustomRequired(true);
+            let value = initialSettings.requiredThreshold;
+            let unitIndex = 0;
+            while (value >= 1024 && unitIndex < SCORE_UNITS.length - 1) {
+                value /= 1024;
+                unitIndex++;
+            }
+            setCustomRequiredValue(value.toString());
+            setCustomRequiredUnit(SCORE_UNITS[unitIndex].value);
+        }
+
+        // 检查优选阈值是否为预设值
+        const isPreferredCustom = !DEFAULT_PREFERRED_OPTIONS.some(
+            option => option.value !== 'custom' && option.value === initialSettings.preferredThreshold
+        );
+        if (isPreferredCustom) {
+            setIsCustomPreferred(true);
+            let value = initialSettings.preferredThreshold;
+            let unitIndex = 0;
+            while (value >= 1024 && unitIndex < SCORE_UNITS.length - 1) {
+                value /= 1024;
+                unitIndex++;
+            }
+            setCustomPreferredValue(value.toString());
+            setCustomPreferredUnit(SCORE_UNITS[unitIndex].value);
+        }
+    }, [initialSettings]);
 
     // 处理必选阈值变化
     const handleRequiredChange = (value: string | number) => {

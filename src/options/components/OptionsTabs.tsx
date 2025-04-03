@@ -2,19 +2,12 @@ import React, { useState } from 'react';
 import { MagnetManagementTab } from './MagnetManagementTab';
 import RuleManager from '../../components/rule';
 import { useRules } from '../hooks/useRules';
+import { useSettings } from '../hooks/useSettings';
 
 export const OptionsTabs: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'management' | 'rules'>('management');
     const { rules, handleRulesChange } = useRules();
-
-    const handleSettingsChange = (settings: {
-        requiredThreshold: number;
-        preferredThreshold: number;
-        targetCount: number;
-    }) => {
-        // TODO: 实现设置保存逻辑
-        console.log('Settings changed:', settings);
-    };
+    const { settings, handleSettingsChange } = useSettings();
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -53,6 +46,7 @@ export const OptionsTabs: React.FC = () => {
                         initialRules={rules}
                         onRulesChange={handleRulesChange}
                         onSettingsChange={handleSettingsChange}
+                        initialSettings={settings}
                     />
                 )}
             </div>

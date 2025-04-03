@@ -9,6 +9,11 @@ import RuleSettings from './RuleSettings';
 
 interface RuleListProps {
     rules: MagnetRule[];
+    initialSettings: {
+        requiredThreshold: number;
+        preferredThreshold: number;
+        targetCount: number;
+    };
     onChange: (rules: MagnetRule[]) => void;
     onSettingsChange: (settings: {
         requiredThreshold: number;
@@ -17,7 +22,7 @@ interface RuleListProps {
     }) => void;
 }
 
-const RuleList: React.FC<RuleListProps> = ({ rules, onChange, onSettingsChange }) => {
+const RuleList: React.FC<RuleListProps> = ({ rules, initialSettings, onChange, onSettingsChange }) => {
     const [expandedRules, setExpandedRules] = useState<Set<string>>(new Set());
     const [validationResults, setValidationResults] = useState<Map<string, boolean>>(new Map());
     const [ruleNumbers, setRuleNumbers] = useState<Map<string, number>>(new Map());
@@ -208,7 +213,10 @@ const RuleList: React.FC<RuleListProps> = ({ rules, onChange, onSettingsChange }
         <div className="space-y-6">
             <RuleDescription />
             
-            <RuleSettings onSettingsChange={onSettingsChange} />
+            <RuleSettings
+                onSettingsChange={onSettingsChange}
+                initialSettings={initialSettings}
+            />
             
             <RuleActions onAddRule={addRule} />
 

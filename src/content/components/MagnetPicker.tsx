@@ -74,7 +74,7 @@ export const MagnetPicker: React.FC<MagnetPickerProps> = ({ magnetService, stora
 
     if (!panelState.pageStateManager.hasDefaultSaved()) {
       console.log('MagnetPicker: 本session首次打开，执行默认保存');
-      const magnetsToSave = selectMagnetsByScore(magnets);
+      const magnetsToSave = await magnetService.selectMagnetsToSave(magnets);
       
       // 保存所有选中的磁力链接
       for (const magnet of magnetsToSave) {
@@ -91,7 +91,7 @@ export const MagnetPicker: React.FC<MagnetPickerProps> = ({ magnetService, stora
       const allUnsaved = await panelState.pageStateManager.areAllMagnetsUnsaved(magnets);
       if (allUnsaved) {
         console.log('MagnetPicker: 所有磁力链接都未保存，执行默认保存');
-        const magnetsToSave = selectMagnetsByScore(magnets);
+        const magnetsToSave = await magnetService.selectMagnetsToSave(magnets);
         
         // 保存所有选中的磁力链接
         for (const magnet of magnetsToSave) {
