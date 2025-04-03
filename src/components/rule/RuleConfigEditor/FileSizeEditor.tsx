@@ -1,47 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileSizeRuleConfig } from '../../../types/rule';
-import { formatFileSize } from '../utils/rule-utils';
 import ScoreMultiplierSelect from './common/ScoreMultiplierInput';
 
+const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB'];
 const FILE_SIZE_PRESETS = [
-    { label: '5GB', value: 5 * 1024 * 1024 * 1024 },
-    { label: '10GB', value: 10 * 1024 * 1024 * 1024 },
-    { label: '15GB', value: 15 * 1024 * 1024 * 1024 },
-    { label: '自定义', value: 'custom' }
+    { value: 5 * 1024 * 1024 * 1024, label: '5G' },
+    { value: 10 * 1024 * 1024 * 1024, label: '10G' },
+    { value: 15 * 1024 * 1024 * 1024, label: '15G' },
+    { value: 'custom', label: '自定义' }
 ];
-
-// 文件大小单位转换
-const parseFileSize = (input: string): number | null => {
-    // 如果只输入了数字，默认单位为B（字节）
-    if (/^\d+(?:\.\d+)?$/.test(input)) {
-        return parseFloat(input);
-    }
-
-    const match = input.match(/^(\d+(?:\.\d+)?)\s*(T|TB|G|GB|M|MB|K|KB|B)?$/i);
-    if (!match) return null;
-
-    const value = parseFloat(match[1]);
-    const unit = (match[2] || 'B').toUpperCase(); // 默认单位为B
-
-    switch (unit) {
-        case 'T':
-        case 'TB':
-            return value * 1024 * 1024 * 1024 * 1024;
-        case 'G':
-        case 'GB':
-            return value * 1024 * 1024 * 1024;
-        case 'M':
-        case 'MB':
-            return value * 1024 * 1024;
-        case 'K':
-        case 'KB':
-            return value * 1024;
-        case 'B':
-            return value;
-        default:
-            return null;
-    }
-};
 
 interface FileSizeEditorProps {
     config: FileSizeRuleConfig;
@@ -49,51 +16,61 @@ interface FileSizeEditorProps {
 }
 
 const FileSizeEditor: React.FC<FileSizeEditorProps> = ({ config, onChange }) => {
-    const [customFileSize, setCustomFileSize] = useState<string>('');
-    const [isCustomFileSize, setIsCustomFileSize] = useState(false);
-    const lastValidFileSizeRef = useRef<string>('');
+    const [isCustomSize, setIsCustomSize] = useState(false);
+    const [customValue, setCustomValue] = useState('5');
+    const [customUnit, setCustomUnit] = useState('GB');
 
     useEffect(() => {
         const threshold = config.threshold;
-        const isCustomSize = !FILE_SIZE_PRESETS.some(preset => 
+        const isCustom = !FILE_SIZE_PRESETS.some(preset => 
             preset.value !== 'custom' && preset.value === threshold
         );
-        setIsCustomFileSize(isCustomSize);
-        const formattedSize = formatFileSize(threshold);
-        setCustomFileSize(formattedSize);
-        lastValidFileSizeRef.current = formattedSize;
+        
+        if (isCustom) {
+            setIsCustomSize(true);
+            // 将字节转换为适当的单位
+            let value = threshold;
+            let unitIndex = 0;
+            while (value >= 1024 && unitIndex < BYTE_UNITS.length - 1) {
+                value /= 1024;
+                unitIndex++;
+            }
+            setCustomValue(value.toString());
+            setCustomUnit(BYTE_UNITS[unitIndex]);
+        } else {
+            setIsCustomSize(false);
+        }
     }, [config.threshold]);
 
-    const handleFileSizeChange = (value: string | number) => {
+    const handleSizeChange = (value: string | number) => {
         if (value === 'custom') {
-            setIsCustomFileSize(true);
+            setIsCustomSize(true);
             return;
         }
 
-        setIsCustomFileSize(false);
+        setIsCustomSize(false);
         onChange({
             ...config,
-            threshold: typeof value === 'string' ? parseInt(value) : value
+            threshold: Number(value)
         });
     };
 
-    const handleCustomFileSizeChange = (input: string) => {
-        setCustomFileSize(input);
-    };
+    const handleCustomValueChange = (value: string, unit: string) => {
+        const numValue = parseFloat(value);
+        if (isNaN(numValue)) return;
 
-    const handleCustomFileSizeBlur = () => {
-        const size = parseFileSize(customFileSize);
-        if (size !== null) {
-            const formattedSize = formatFileSize(size);
-            setCustomFileSize(formattedSize);
-            lastValidFileSizeRef.current = formattedSize;
-            onChange({
-                ...config,
-                threshold: size
-            });
-        } else {
-            setCustomFileSize(lastValidFileSizeRef.current);
+        let bytes = numValue;
+        const unitIndex = BYTE_UNITS.indexOf(unit);
+        for (let i = 0; i < unitIndex; i++) {
+            bytes *= 1024;
         }
+
+        setCustomValue(value);
+        setCustomUnit(unit);
+        onChange({
+            ...config,
+            threshold: bytes
+        });
     };
 
     return (
@@ -109,31 +86,40 @@ const FileSizeEditor: React.FC<FileSizeEditorProps> = ({ config, onChange }) => 
                         ...config,
                         condition: e.target.value as 'greater' | 'less'
                     })}
-                    className="w-24 px-2 py-1 text-sm border rounded"
+                    className="block w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 >
                     <option value="greater">大于</option>
                     <option value="less">小于</option>
                 </select>
                 <select
-                    value={isCustomFileSize ? 'custom' : String(config.threshold)}
-                    onChange={(e) => handleFileSizeChange(e.target.value)}
-                    className="w-24 px-2 py-1 text-sm border rounded"
+                    value={isCustomSize ? 'custom' : config.threshold}
+                    onChange={(e) => handleSizeChange(e.target.value)}
+                    className="block w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 >
-                    {FILE_SIZE_PRESETS.map(preset => (
-                        <option key={preset.value} value={preset.value}>
-                            {preset.label}
+                    {FILE_SIZE_PRESETS.map(option => (
+                        <option key={option.label} value={option.value}>
+                            {option.label}
                         </option>
                     ))}
                 </select>
-                {isCustomFileSize && (
-                    <input
-                        type="text"
-                        value={customFileSize}
-                        onChange={(e) => handleCustomFileSizeChange(e.target.value)}
-                        onBlur={handleCustomFileSizeBlur}
-                        className="w-32 px-2 py-1 text-sm border rounded"
-                        placeholder="如: 5GB, 1.5TB"
-                    />
+                {isCustomSize && (
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={customValue}
+                            onChange={(e) => handleCustomValueChange(e.target.value, customUnit)}
+                            className="block w-20 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        />
+                        <select
+                            value={customUnit}
+                            onChange={(e) => handleCustomValueChange(customValue, e.target.value)}
+                            className="block w-20 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        >
+                            {BYTE_UNITS.map(unit => (
+                                <option key={unit} value={unit}>{unit}</option>
+                            ))}
+                        </select>
+                    </div>
                 )}
             </div>
             

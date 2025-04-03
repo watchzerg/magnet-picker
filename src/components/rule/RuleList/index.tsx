@@ -5,13 +5,19 @@ import { validateRule } from '../utils/validation';
 import RuleItem from './RuleItem';
 import RuleActions from './RuleActions';
 import RuleDescription from './RuleDescription';
+import RuleSettings from './RuleSettings';
 
 interface RuleListProps {
     rules: MagnetRule[];
     onChange: (rules: MagnetRule[]) => void;
+    onSettingsChange: (settings: {
+        requiredThreshold: number;
+        preferredThreshold: number;
+        targetCount: number;
+    }) => void;
 }
 
-const RuleList: React.FC<RuleListProps> = ({ rules, onChange }) => {
+const RuleList: React.FC<RuleListProps> = ({ rules, onChange, onSettingsChange }) => {
     const [expandedRules, setExpandedRules] = useState<Set<string>>(new Set());
     const [validationResults, setValidationResults] = useState<Map<string, boolean>>(new Map());
     const [ruleNumbers, setRuleNumbers] = useState<Map<string, number>>(new Map());
@@ -201,6 +207,8 @@ const RuleList: React.FC<RuleListProps> = ({ rules, onChange }) => {
     return (
         <div className="space-y-6">
             <RuleDescription />
+            
+            <RuleSettings onSettingsChange={onSettingsChange} />
             
             <RuleActions onAddRule={addRule} />
 
