@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { createRoot, Root as ReactDOMRoot } from 'react-dom/client';
 import { MagnetInfo } from '../../types/magnet';
 import { MagnetPanel } from '../../components/MagnetPanel';
@@ -7,13 +7,17 @@ import { PageStateManager } from '../../utils/pageStateManager';
 import { sortMagnetsByScore } from '../../utils/magnet';
 import { showErrorMessage, showSuccessMessage } from '../utils/toast';
 
-export function usePanelState() {
+export const usePanelState = () => {
+  const [isPanelVisible, setIsPanelVisible] = useState(false);
+  const [currentMagnets, setCurrentMagnets] = useState<MagnetInfo[]>([]);
   let panelContainer: HTMLDivElement | null = null;
   let root: ReactDOMRoot | null = null;
-  let isPanelVisible = false;
   const pageStateManager = new PageStateManager(window.location.href);
 
-  const showPanel = async (magnets: MagnetInfo[]): Promise<void> => {
+  const showPanel = useCallback(async (magnets: MagnetInfo[]) => {
+    const sortedMagnets = await sortMagnetsByScore(magnets);
+    setCurrentMagnets(sortedMagnets);
+    setIsPanelVisible(true);
     console.log('MagnetPicker: 准备显示面板');
     if (!panelContainer || !root) {
       console.error('MagnetPicker: 面板容器或根节点不存在，重新创建');
@@ -24,9 +28,7 @@ export function usePanelState() {
       root = createRoot(innerContainer);
     }
 
-    isPanelVisible = true;
-    const savedStates = await pageStateManager.getSavedMagnetStates(magnets);
-    const sortedMagnets = sortMagnetsByScore(magnets);
+    const savedStates = await pageStateManager.getSavedMagnetStates(sortedMagnets);
 
     if (!root) {
       console.error('MagnetPicker: root 不存在，无法渲染面板');
@@ -36,7 +38,7 @@ export function usePanelState() {
     const panelProps = {
       magnets: sortedMagnets,
       savedStates,
-      onClose: closePanel,
+      onClose: hidePanel,
       onToggleSave: handleToggleSave
     };
 
@@ -52,7 +54,7 @@ export function usePanelState() {
         return;
       }
       console.log('MagnetPicker: 点击面板外部，关闭面板');
-      closePanel();
+      hidePanel();
       document.removeEventListener('click', handleDocumentClick);
     };
 
@@ -60,19 +62,18 @@ export function usePanelState() {
       document.addEventListener('click', handleDocumentClick);
       console.log('MagnetPicker: 添加了点击事件监听器');
     }, 100);
-  };
+  }, []);
 
-  const closePanel = () => {
-    if (!isPanelVisible) return;
+  const hidePanel = useCallback(() => {
+    setIsPanelVisible(false);
     console.log('MagnetPicker: 关闭面板');
-    isPanelVisible = false;
     if (root) {
       root.render(null);
     }
     if (panelContainer) {
       panelContainer.style.display = 'none';
     }
-  };
+  }, []);
 
   const handleToggleSave = async (magnet: MagnetInfo, isSaved: boolean) => {
     try {
@@ -98,7 +99,7 @@ export function usePanelState() {
   };
 
   const destroy = () => {
-    closePanel();
+    hidePanel();
     if (panelContainer) {
       panelContainer.remove();
       panelContainer = null;
@@ -107,9 +108,11 @@ export function usePanelState() {
   };
 
   return {
+    isPanelVisible,
+    currentMagnets,
     showPanel,
-    closePanel,
+    hidePanel,
     destroy,
     pageStateManager
   };
-} 
+}; 

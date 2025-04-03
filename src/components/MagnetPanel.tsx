@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { MagnetInfo } from '../types/magnet';
 import { formatFileSize, calculateMagnetScores } from '../utils/magnet';
 
@@ -23,8 +23,15 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
 }) => {
   console.log('MagnetPanel: 渲染面板，磁力链接数量:', magnets.length);
   
-  // 计算所有磁力链接的评分
-  const magnetScores = calculateMagnetScores(magnets);
+  const [magnetScores, setMagnetScores] = useState<MagnetScore[]>([]);
+
+  useEffect(() => {
+    const loadScores = async () => {
+      const scores = await calculateMagnetScores(magnets);
+      setMagnetScores(scores);
+    };
+    loadScores();
+  }, [magnets]);
   
   // 判断磁力链接是否已保存
   const isMagnetSaved = (magnet: MagnetInfo) => {

@@ -122,7 +122,7 @@ export class MagnetService {
         return [];
       }
 
-      return sortMagnetsByScore(magnets);
+      return await sortMagnetsByScore(magnets);
     } catch (error) {
       console.error('MagnetPicker: 解析出错:', error);
       showErrorMessage('解析出错，请重试');
@@ -134,6 +134,6 @@ export class MagnetService {
    * 选择要保存的磁力链接
    */
   public async selectMagnetsToSave(magnets: MagnetInfo[]): Promise<MagnetInfo[]> {
-    return selectMagnetsByScore(magnets);
+    return await selectMagnetsByScore(magnets);
   }
 } 
