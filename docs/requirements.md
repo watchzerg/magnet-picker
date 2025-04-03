@@ -1,33 +1,35 @@
 # Magnet Picker - Chrome扩展需求文档
 
-## 1. 项目概述
-开发一个Chrome浏览器扩展，用于自动解析并一键保存特定网页的磁力链接。
+## 1. 项目目标
+对以下网站进行能力增强
+- https://www.javbus.com/ （已实现）
+- https://javdb.com/
+- https://www.javlibrary.com/cn/
+- https://jable.tv/
 
-## 2. 功能规格
+## 2. 核心功能
 
-### 2.1 URL匹配规则
-- 目标网站：https://www.javbus.com/
-- URL模式：仅匹配形如 `https://www.javbus.com/{code}` 的详情页面
-  - 示例有效URL：https://www.javbus.com/WSA-001
-  - 示例无效URL：https://www.javbus.com/studio/abc
+### 2.1 磁链保存
+- 生效的目标URL：
+  - `https://www.javbus.com/{code}` （如 https://www.javbus.com/WSA-001）
+- 能力增强：点击悬浮按钮后，解析页面上所有磁链
+  - 自动保存：按配置好的规则，自动保存磁链
+  - 手工保存：在弹出的信息面板上手工保存磁链
+- 保存规则配置
+  - 在插件配置页，配置“自动保存”的磁链匹配规则
+- 磁链导出
+  - 在插件配置页面，导出已保存的磁链
 
-### 2.2 磁力链接解析
-- 定位目标：页面中的磁力链接表格
-- 解析内容：
-  - 磁力链接：`href` 属性中的 `magnet:?xt=urn:btih:...` 
-  - 文件名：链接文本内容
-  - 文件大小：对应单元格内容
-  - 发布日期：对应单元格内容
 
-### 2.3 用户界面
-#### 2.3.1 下载触发器
-- 类型：半透明浮动按钮
-- 位置：页面右侧
-- 显示规则：仅在匹配的页面自动显示
-- 交互：点击触发磁力链接解析
+## 规划中的功能
 
-### 2.4 技术规范
-- 使用 Manifest V3
-- 采用 TypeScript 开发
-- 实现模块化设计
-- 遵循 Chrome 扩展最佳实践
+### 实时增强类 （参考jav老司机的脚本 https://github.com/hobbyfang/javOldDriver）
+- 磁链保存，支持javdb
+- 各个jav网站的番号页面快速相互跳转
+- 无限列表滚动（瀑布流）
+- 高清预览大图
+
+### 离线增强类 （需要自己的数据库支撑）
+- 增加一个wbest的checkbox标记
+- 已查看过的番号，加载到浏览器缓存，并从列表页面过滤掉
+- 已下载过的magnet置灰（离线数据库里也允许手工导入“已下载magnet”）
