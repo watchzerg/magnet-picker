@@ -81,6 +81,6 @@ export function showToast(message: string, type: 'success' | 'error'): void {
 
 export function isValidPage(): boolean {
   const url = window.location.href;
-  const pattern = /^https:\/\/www\.javbus\.com\/[A-Z]+-\d+$/;
+  const pattern = /^https:\/\/www\.javbus\.com\/[a-zA-Z]+-\d+$/;
   return pattern.test(url);
 } 

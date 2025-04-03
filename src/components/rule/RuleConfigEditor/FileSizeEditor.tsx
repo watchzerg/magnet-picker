@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FileSizeRuleConfig } from '../../../types/rule';
 import { formatFileSize } from '../utils/rule-utils';
-import ScoreMultiplierInput from './common/ScoreMultiplierInput';
-import StopOnMatchInput from './common/StopOnMatchInput';
+import ScoreMultiplierSelect from './common/ScoreMultiplierInput';
 
 const FILE_SIZE_PRESETS = [
     { label: '5GB', value: 5 * 1024 * 1024 * 1024 },
@@ -65,20 +64,16 @@ const FileSizeEditor: React.FC<FileSizeEditorProps> = ({ config, onChange }) => 
         lastValidFileSizeRef.current = formattedSize;
     }, [config.threshold]);
 
-    const handleFileSizeChange = (value: string) => {
+    const handleFileSizeChange = (value: string | number) => {
         if (value === 'custom') {
             setIsCustomFileSize(true);
-            const formattedSize = formatFileSize(config.threshold);
-            setCustomFileSize(formattedSize);
-            lastValidFileSizeRef.current = formattedSize;
             return;
         }
 
         setIsCustomFileSize(false);
-        const newThreshold = Number(value);
         onChange({
             ...config,
-            threshold: newThreshold
+            threshold: typeof value === 'string' ? parseInt(value) : value
         });
     };
 
@@ -102,53 +97,50 @@ const FileSizeEditor: React.FC<FileSizeEditorProps> = ({ config, onChange }) => 
     };
 
     return (
-        <div className="space-y-2">
+        <div className="flex items-center justify-between gap-4">
+            {/* 左侧：条件选择 */}
             <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700 min-w-[4rem]">
+                <label className="text-sm font-medium text-gray-700">
                     条件
                 </label>
-                <div className="flex gap-2 flex-1">
-                    <select
-                        value={config.condition}
-                        onChange={(e) => onChange({
-                            ...config,
-                            condition: e.target.value as 'greater' | 'less'
-                        })}
-                        className="w-24 px-2 py-1 text-sm border rounded"
-                    >
-                        <option value="greater">大于</option>
-                        <option value="less">小于</option>
-                    </select>
-                    <select
-                        value={isCustomFileSize ? 'custom' : String(config.threshold)}
-                        onChange={(e) => handleFileSizeChange(e.target.value)}
-                        className="w-24 px-2 py-1 text-sm border rounded"
-                    >
-                        {FILE_SIZE_PRESETS.map(preset => (
-                            <option key={preset.value} value={preset.value}>
-                                {preset.label}
-                            </option>
-                        ))}
-                    </select>
-                    {isCustomFileSize && (
-                        <input
-                            type="text"
-                            value={customFileSize}
-                            onChange={(e) => handleCustomFileSizeChange(e.target.value)}
-                            onBlur={handleCustomFileSizeBlur}
-                            className="w-32 px-2 py-1 text-sm border rounded"
-                            placeholder="如: 5GB, 1.5TB"
-                        />
-                    )}
-                </div>
+                <select
+                    value={config.condition}
+                    onChange={(e) => onChange({
+                        ...config,
+                        condition: e.target.value as 'greater' | 'less'
+                    })}
+                    className="w-24 px-2 py-1 text-sm border rounded"
+                >
+                    <option value="greater">大于</option>
+                    <option value="less">小于</option>
+                </select>
+                <select
+                    value={isCustomFileSize ? 'custom' : String(config.threshold)}
+                    onChange={(e) => handleFileSizeChange(e.target.value)}
+                    className="w-24 px-2 py-1 text-sm border rounded"
+                >
+                    {FILE_SIZE_PRESETS.map(preset => (
+                        <option key={preset.value} value={preset.value}>
+                            {preset.label}
+                        </option>
+                    ))}
+                </select>
+                {isCustomFileSize && (
+                    <input
+                        type="text"
+                        value={customFileSize}
+                        onChange={(e) => handleCustomFileSizeChange(e.target.value)}
+                        onBlur={handleCustomFileSizeBlur}
+                        className="w-32 px-2 py-1 text-sm border rounded"
+                        placeholder="如: 5GB, 1.5TB"
+                    />
+                )}
             </div>
-            <ScoreMultiplierInput
+            
+            {/* 右侧：得分系数 */}
+            <ScoreMultiplierSelect
                 value={config.scoreMultiplier}
                 onChange={(value) => onChange({ ...config, scoreMultiplier: value })}
-            />
-            <StopOnMatchInput
-                value={config.stopOnMatch}
-                onChange={(value) => onChange({ ...config, stopOnMatch: value })}
             />
         </div>
     );

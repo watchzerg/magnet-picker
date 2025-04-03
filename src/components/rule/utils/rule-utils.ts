@@ -5,7 +5,7 @@ export const getRuleTypeName = (type: RuleType): string => {
         case RuleType.FILE_SIZE:
             return '文件大小规则';
         case RuleType.FILENAME_CONTAINS:
-            return '文件名包含规则';
+            return '文件名关键字';
         case RuleType.FILENAME_SUFFIX:
             return '文件名后缀规则';
         case RuleType.FILE_EXTENSION:

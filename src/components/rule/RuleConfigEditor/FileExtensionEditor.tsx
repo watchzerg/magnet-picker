@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { FileExtensionRuleConfig } from '../../../types/rule';
-import ScoreMultiplierInput from './common/ScoreMultiplierInput';
-import StopOnMatchInput from './common/StopOnMatchInput';
+import ScoreMultiplierSelect from './common/ScoreMultiplierInput';
 
-const FILE_EXTENSION_PRESETS = [
-    { label: 'MP4', value: 'mp4' },
-    { label: 'MKV', value: 'mkv' },
-    { label: 'ISO', value: 'iso' },
-    { label: '自定义', value: 'custom' }
+const COMMON_EXTENSIONS = [
+    'mp4', 'avi', 'mkv', 'mov', 'wmv', 'flv', 'webm',
+    'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp',
+    'mp3', 'wav', 'flac', 'aac', 'ogg',
+    'zip', 'rar', '7z', 'tar', 'gz',
+    'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+    'txt', 'csv', 'json', 'xml', 'html', 'css', 'js'
 ];
 
 interface FileExtensionEditorProps {
@@ -16,82 +17,47 @@ interface FileExtensionEditorProps {
 }
 
 const FileExtensionEditor: React.FC<FileExtensionEditorProps> = ({ config, onChange }) => {
-    const [isCustomExtension, setIsCustomExtension] = useState(false);
-
-    const handleExtensionChange = (value: string) => {
-        if (value === 'custom') {
-            setIsCustomExtension(true);
-            onChange({
-                ...config,
-                extensions: []
-            });
-            return;
-        }
-
-        setIsCustomExtension(false);
+    const handleExtensionToggle = (extension: string) => {
+        const newExtensions = config.extensions.includes(extension)
+            ? config.extensions.filter(e => e !== extension)
+            : [...config.extensions, extension];
+        
         onChange({
             ...config,
-            extensions: [value]
+            extensions: newExtensions
         });
     };
-
-    const handleCustomExtensionChange = (value: string) => {
-        const trimmedValue = value.slice(0, 10);
-        onChange({
-            ...config,
-            extensions: trimmedValue ? [trimmedValue] : []
-        });
-    };
-
-    // 初始化时如果没有选中值，默认选中第一个选项
-    useEffect(() => {
-        if (!config.extensions.length && !isCustomExtension) {
-            handleExtensionChange(FILE_EXTENSION_PRESETS[0].value);
-        }
-    }, []);
-
-    const currentExtension = config.extensions[0];
-    const isPresetExtension = FILE_EXTENSION_PRESETS.some(preset => preset.value === currentExtension);
-    const selectValue = isCustomExtension ? 'custom' : 
-                      (isPresetExtension ? currentExtension : FILE_EXTENSION_PRESETS[0].value);
 
     return (
-        <div className="space-y-2">
-            <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700 min-w-[4rem]">
-                    扩展名
-                </label>
-                <div className="flex gap-2 flex-1">
-                    <select
-                        value={selectValue}
-                        onChange={(e) => handleExtensionChange(e.target.value)}
-                        className="w-32 px-2 py-1 text-sm border rounded"
-                    >
-                        {FILE_EXTENSION_PRESETS.map(preset => (
-                            <option key={preset.value} value={preset.value}>
-                                {preset.label}
-                            </option>
-                        ))}
-                    </select>
-                    {isCustomExtension && (
-                        <input
-                            type="text"
-                            value={currentExtension || ''}
-                            onChange={(e) => handleCustomExtensionChange(e.target.value)}
-                            className="w-32 px-2 py-1 text-sm border rounded"
-                            placeholder="输入扩展名"
-                            maxLength={10}
-                        />
-                    )}
+        <div className="flex items-center justify-between gap-4">
+            {/* 左侧：扩展名选择 */}
+            <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                    <label className="text-sm font-medium text-gray-700">
+                        扩展名
+                    </label>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                    {COMMON_EXTENSIONS.map(extension => (
+                        <button
+                            key={extension}
+                            onClick={() => handleExtensionToggle(extension)}
+                            className={`px-2 py-1 text-sm rounded ${
+                                config.extensions.includes(extension)
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                        >
+                            {extension}
+                        </button>
+                    ))}
                 </div>
             </div>
-            <ScoreMultiplierInput
+            
+            {/* 右侧：得分系数 */}
+            <ScoreMultiplierSelect
                 value={config.scoreMultiplier}
                 onChange={(value) => onChange({ ...config, scoreMultiplier: value })}
-            />
-            <StopOnMatchInput
-                value={config.stopOnMatch}
-                onChange={(value) => onChange({ ...config, stopOnMatch: value })}
             />
         </div>
     );

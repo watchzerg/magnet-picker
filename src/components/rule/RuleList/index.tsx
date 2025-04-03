@@ -4,6 +4,7 @@ import { MagnetRule, RuleType, RuleConfig } from '../../../types/rule';
 import { validateRule } from '../utils/validation';
 import RuleItem from './RuleItem';
 import RuleActions from './RuleActions';
+import RuleDescription from './RuleDescription';
 
 interface RuleListProps {
     rules: MagnetRule[];
@@ -13,6 +14,7 @@ interface RuleListProps {
 const RuleList: React.FC<RuleListProps> = ({ rules, onChange }) => {
     const [expandedRules, setExpandedRules] = useState<Set<string>>(new Set());
     const [validationResults, setValidationResults] = useState<Map<string, boolean>>(new Map());
+    const [ruleNumbers, setRuleNumbers] = useState<Map<string, number>>(new Map());
 
     // 初始化时校验所有规则
     useEffect(() => {
@@ -27,6 +29,21 @@ const RuleList: React.FC<RuleListProps> = ({ rules, onChange }) => {
         });
         setValidationResults(newValidationResults);
     }, []);
+
+    // 计算规则序号
+    useEffect(() => {
+        const newRuleNumbers = new Map<string, number>();
+        let currentNumber = 1;
+        
+        rules.forEach(rule => {
+            if (rule.enabled) {
+                newRuleNumbers.set(rule.id, currentNumber);
+                currentNumber++;
+            }
+        });
+        
+        setRuleNumbers(newRuleNumbers);
+    }, [rules]);
 
     const toggleExpand = (ruleId: string) => {
         const isValid = validationResults.get(ruleId);
@@ -43,43 +60,28 @@ const RuleList: React.FC<RuleListProps> = ({ rules, onChange }) => {
         });
     };
 
-    const handleRuleChange = (index: number, rule: MagnetRule) => {
-        const newRules = [...rules];
-        newRules[index] = rule;
-
-        // 校验规则
-        const { isValid } = validateRule(rule.type, rule.config);
-        const newValidationResults = new Map(validationResults);
-        newValidationResults.set(rule.id, isValid);
-        setValidationResults(newValidationResults);
-
-        // 如果规则无效，确保它是展开的并且未启用
-        if (!isValid) {
-            setExpandedRules(prev => new Set([...prev, rule.id]));
-            rule.enabled = false;
-        }
-
-        onChange(newRules);
-    };
-
     const handleDragEnd = (result: any) => {
         if (!result.destination) return;
 
         const newRules = [...rules];
         const [removed] = newRules.splice(result.source.index, 1);
         newRules.splice(result.destination.index, 0, removed);
+
+        // 更新规则顺序
+        newRules.forEach((rule, index) => {
+            rule.order = index;
+        });
+
         onChange(newRules);
     };
 
-    const toggleRule = (index: number) => {
-        const rule = rules[index];
-        const isValid = validationResults.get(rule.id);
-        
-        // 如果规则无效，不允许启用
-        if (!isValid) return;
+    const toggleRuleEnabled = (ruleId: string) => {
+        const ruleIndex = rules.findIndex(r => r.id === ruleId);
+        if (ruleIndex === -1) return;
 
         const newRules = [...rules];
-        newRules[index] = {
+        const rule = newRules[ruleIndex];
+        newRules[ruleIndex] = {
             ...rule,
             enabled: !rule.enabled
         };
@@ -151,30 +153,55 @@ const RuleList: React.FC<RuleListProps> = ({ rules, onChange }) => {
         // 新规则默认展开
         setExpandedRules(prev => new Set([...prev, newRule.id]));
 
+        // 添加新规则
         onChange([...rules, newRule]);
     };
 
-    const deleteRule = (index: number) => {
+    const updateRule = (ruleId: string, config: RuleConfig) => {
+        const ruleIndex = rules.findIndex(r => r.id === ruleId);
+        if (ruleIndex === -1) return;
+
         const newRules = [...rules];
-        const deletedRule = newRules[index];
-        
-        // 清除相关状态
+        const rule = newRules[ruleIndex];
+        newRules[ruleIndex] = {
+            ...rule,
+            config
+        };
+
+        // 校验更新后的规则
+        const { isValid } = validateRule(rule.type, config);
         const newValidationResults = new Map(validationResults);
-        newValidationResults.delete(deletedRule.id);
+        newValidationResults.set(rule.id, isValid);
         setValidationResults(newValidationResults);
 
-        setExpandedRules(prev => {
-            const next = new Set(prev);
-            next.delete(deletedRule.id);
-            return next;
+        onChange(newRules);
+    };
+
+    const deleteRule = (ruleId: string) => {
+        const newRules = rules.filter(r => r.id !== ruleId);
+        
+        // 更新规则顺序
+        newRules.forEach((rule, index) => {
+            rule.order = index;
         });
 
-        newRules.splice(index, 1);
+        // 清理相关状态
+        setExpandedRules(prev => {
+            const next = new Set(prev);
+            next.delete(ruleId);
+            return next;
+        });
+        const newValidationResults = new Map(validationResults);
+        newValidationResults.delete(ruleId);
+        setValidationResults(newValidationResults);
+
         onChange(newRules);
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
+            <RuleDescription />
+            
             <RuleActions onAddRule={addRule} />
 
             <DragDropContext onDragEnd={handleDragEnd}>
@@ -183,7 +210,7 @@ const RuleList: React.FC<RuleListProps> = ({ rules, onChange }) => {
                         <div
                             {...provided.droppableProps}
                             ref={provided.innerRef}
-                            className="space-y-2"
+                            className="space-y-4"
                         >
                             {rules.map((rule, index) => (
                                 <RuleItem
@@ -191,11 +218,12 @@ const RuleList: React.FC<RuleListProps> = ({ rules, onChange }) => {
                                     rule={rule}
                                     index={index}
                                     isExpanded={expandedRules.has(rule.id)}
-                                    isValid={validationResults.get(rule.id) || false}
-                                    onToggleExpand={toggleExpand}
-                                    onToggleRule={toggleRule}
-                                    onDelete={deleteRule}
-                                    onChange={handleRuleChange}
+                                    isValid={validationResults.get(rule.id) ?? true}
+                                    ruleNumber={ruleNumbers.get(rule.id) || 0}
+                                    onToggleExpand={(ruleId) => toggleExpand(ruleId)}
+                                    onToggleRule={(index) => toggleRuleEnabled(rules[index].id)}
+                                    onChange={(index, rule) => updateRule(rule.id, rule.config)}
+                                    onDelete={(index) => deleteRule(rules[index].id)}
                                 />
                             ))}
                             {provided.placeholder}

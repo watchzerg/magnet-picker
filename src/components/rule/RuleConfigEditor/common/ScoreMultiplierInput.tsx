@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 
-const SCORE_MULTIPLIER_PRESETS = [
-    { label: '150%', value: 1.5 },
-    { label: '120%', value: 1.2 },
-    { label: '100%', value: 1.0 },
-    { label: '80%', value: 0.8 },
-    { label: '50%', value: 0.5 },
-    { label: '0%', value: 0 },
-    { label: '自定义', value: 'custom' }
+// 得分系数预设选项
+export const SCORE_MULTIPLIER_OPTIONS = [
+    { value: 1.5, label: '150%' },
+    { value: 1.2, label: '120%' },
+    { value: 1.0, label: '100%' },
+    { value: 0.8, label: '80%' },
+    { value: 0.5, label: '50%' },
+    { value: 0, label: '0%' },
+    { value: 'custom', label: '自定义' }
 ];
 
 interface ScoreMultiplierInputProps {
@@ -20,9 +21,10 @@ const ScoreMultiplierInput: React.FC<ScoreMultiplierInputProps> = ({ value, onCh
     const [isCustomScoreMultiplier, setIsCustomScoreMultiplier] = useState(false);
 
     useEffect(() => {
-        const isCustom = !SCORE_MULTIPLIER_PRESETS.some(preset => 
-            preset.value !== 'custom' && preset.value === value
-        );
+        const isCustom = !SCORE_MULTIPLIER_OPTIONS
+            .filter(option => option.value !== 'custom')
+            .some(option => option.value === value);
+            
         setIsCustomScoreMultiplier(isCustom);
         if (isCustom) {
             setCustomScoreMultiplier(String(Math.round(value * 100)));
@@ -57,9 +59,9 @@ const ScoreMultiplierInput: React.FC<ScoreMultiplierInputProps> = ({ value, onCh
                     onChange={(e) => handleScoreMultiplierChange(e.target.value)}
                     className="w-32 px-2 py-1 text-sm border rounded"
                 >
-                    {SCORE_MULTIPLIER_PRESETS.map(preset => (
-                        <option key={preset.value} value={preset.value}>
-                            {preset.label}
+                    {SCORE_MULTIPLIER_OPTIONS.map(option => (
+                        <option key={option.value} value={option.value}>
+                            {option.label}
                         </option>
                     ))}
                 </select>

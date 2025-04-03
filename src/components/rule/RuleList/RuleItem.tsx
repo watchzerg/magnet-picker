@@ -13,6 +13,7 @@ interface RuleItemProps {
     onToggleRule: (index: number) => void;
     onDelete: (index: number) => void;
     onChange: (index: number, rule: MagnetRule) => void;
+    ruleNumber: number;
 }
 
 const RuleItem: React.FC<RuleItemProps> = ({
@@ -23,7 +24,8 @@ const RuleItem: React.FC<RuleItemProps> = ({
     onToggleExpand,
     onToggleRule,
     onDelete,
-    onChange
+    onChange,
+    ruleNumber
 }) => {
     const rulePreview = getRulePreview(rule.type, rule.config);
 
@@ -39,37 +41,105 @@ const RuleItem: React.FC<RuleItemProps> = ({
                     {...provided.draggableProps}
                     className="border rounded bg-white"
                 >
-                    <div className="flex items-center p-2 gap-2">
-                        <div {...provided.dragHandleProps} className="cursor-move">
-                            ⋮⋮
+                    <div 
+                        className="flex items-center p-2 gap-2 cursor-pointer hover:bg-gray-50"
+                        onClick={() => onToggleExpand(rule.id)}
+                    >
+                        {/* 左侧元素组 */}
+                        <div className="flex items-center gap-2 flex-1">
+                            {/* 拖拽标识符 */}
+                            <div 
+                                {...provided.dragHandleProps} 
+                                className="cursor-move text-gray-400"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                ⋮⋮
+                            </div>
+                            
+                            {/* 序号标识 */}
+                            <div className="min-w-[32px] h-[32px] flex items-center justify-center">
+                                {rule.enabled ? (
+                                    <div className="w-[28px] h-[28px] rounded-full bg-blue-100 text-blue-800 font-bold text-lg flex items-center justify-center">
+                                        {ruleNumber}
+                                    </div>
+                                ) : (
+                                    <div className="w-[28px] h-[28px] rounded-full bg-gray-100 text-gray-400 font-bold text-lg flex items-center justify-center">
+                                        -
+                                    </div>
+                                )}
+                            </div>
+                            
+                            {/* 规则标题 */}
+                            <div className="font-bold text-lg text-blue-800 min-w-[120px]">
+                                {getRuleTypeName(rule.type)}
+                            </div>
+                            
+                            {/* 规则说明 */}
+                            <div className="text-gray-500 flex-1">
+                                {rulePreview}
+                                {!isValid && (
+                                    <span className="ml-2 text-red-500 text-sm">
+                                        规则配置无效
+                                    </span>
+                                )}
+                            </div>
                         </div>
-                        <input
-                            type="checkbox"
-                            checked={rule.enabled}
-                            disabled={!isValid}
-                            onChange={() => onToggleRule(index)}
-                            className={`w-4 h-4 ${!isValid ? 'cursor-not-allowed opacity-50' : ''}`}
-                        />
-                        <button
-                            onClick={() => onToggleExpand(rule.id)}
-                            disabled={!isValid}
-                            className={`flex-1 text-left ${!isValid ? 'cursor-not-allowed' : 'hover:bg-gray-50'}`}
-                        >
-                            <span className="font-medium">{getRuleTypeName(rule.type)}</span>
-                            <span className="ml-2 text-gray-500">{rulePreview}</span>
-                            {!isValid && (
-                                <span className="ml-2 text-red-500 text-sm">
-                                    规则配置无效
-                                </span>
-                            )}
-                        </button>
-                        <button
-                            onClick={() => onDelete(index)}
-                            className="text-red-500 hover:text-red-600"
-                        >
-                            删除
-                        </button>
+                        
+                        {/* 右侧按钮组 */}
+                        <div className="flex items-center gap-2">
+                            {/* 规则启用/禁用按钮 */}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onToggleRule(index);
+                                }}
+                                disabled={!isValid}
+                                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                                    rule.enabled 
+                                        ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                } ${!isValid ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                                {rule.enabled ? '规则已启用' : '规则已禁用'}
+                            </button>
+                            
+                            {/* 中止规则按钮 */}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const newRule = {
+                                        ...rule,
+                                        config: {
+                                            ...rule.config,
+                                            stopOnMatch: !rule.config.stopOnMatch
+                                        }
+                                    };
+                                    onChange(index, newRule);
+                                }}
+                                disabled={!isValid}
+                                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                                    rule.config.stopOnMatch 
+                                        ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' 
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                } ${!isValid ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                                {rule.config.stopOnMatch ? '启用匹配中止' : '禁用匹配中止'}
+                            </button>
+                            
+                            {/* 删除按钮 */}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDelete(index);
+                                }}
+                                className="px-3 py-1 rounded-md text-sm font-medium bg-red-100 text-red-800 hover:bg-red-200 transition-colors"
+                            >
+                                删除
+                            </button>
+                        </div>
                     </div>
+                    
+                    {/* 展开的规则配置编辑器 */}
                     {isExpanded && (
                         <div className="p-2 border-t">
                             <RuleConfigEditor

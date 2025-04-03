@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { FilenameRegexRuleConfig } from '../../../types/rule';
-import ScoreMultiplierInput from './common/ScoreMultiplierInput';
-import StopOnMatchInput from './common/StopOnMatchInput';
+import ScoreMultiplierSelect from './common/ScoreMultiplierInput';
 
 // 检查正则表达式是否有效
 const isValidRegex = (pattern: string): boolean => {
@@ -22,8 +21,9 @@ const FilenameRegexEditor: React.FC<FilenameRegexEditorProps> = ({ config, onCha
     const [isValidPattern, setIsValidPattern] = useState(true);
 
     const handlePatternChange = (pattern: string) => {
-        const isValid = isValidRegex(pattern);
+        const isValid = !pattern || isValidRegex(pattern);
         setIsValidPattern(isValid);
+        
         onChange({
             ...config,
             pattern
@@ -31,37 +31,36 @@ const FilenameRegexEditor: React.FC<FilenameRegexEditorProps> = ({ config, onCha
     };
 
     return (
-        <div className="space-y-2">
-            <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700 min-w-[4rem]">
-                    正则
-                </label>
-                <div className="flex-1 max-w-xl relative">
+        <div className="flex items-center justify-between gap-4">
+            {/* 左侧：正则表达式输入 */}
+            <div className="flex-1">
+                <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700">
+                        正则表达式
+                    </label>
                     <input
                         type="text"
                         value={config.pattern}
                         onChange={(e) => handlePatternChange(e.target.value)}
                         className={`w-full px-2 py-1 text-sm border rounded ${
                             !isValidPattern && config.pattern
-                                ? 'border-red-500 focus:ring-red-500'
+                                ? 'border-red-500'
                                 : ''
                         }`}
-                        placeholder="输入正则表达式"
+                        placeholder="输入正则表达式，如: .*1080p.*"
                     />
-                    {!isValidPattern && config.pattern && (
-                        <span className="absolute left-0 -bottom-5 text-xs text-red-500">
-                            无效的正则表达式
-                        </span>
-                    )}
                 </div>
+                {!isValidPattern && config.pattern && (
+                    <div className="mt-1 text-sm text-red-500">
+                        无效的正则表达式
+                    </div>
+                )}
             </div>
-            <ScoreMultiplierInput
+            
+            {/* 右侧：得分系数 */}
+            <ScoreMultiplierSelect
                 value={config.scoreMultiplier}
                 onChange={(value) => onChange({ ...config, scoreMultiplier: value })}
-            />
-            <StopOnMatchInput
-                value={config.stopOnMatch}
-                onChange={(value) => onChange({ ...config, stopOnMatch: value })}
             />
         </div>
     );
