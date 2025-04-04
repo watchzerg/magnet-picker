@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { MagnetInfo } from '../types/magnet';
 import { formatFileSize, calculateMagnetScores } from '../utils/magnet';
+import { 
+  MagnetRule, 
+  RuleType,
+  FileSizeRuleConfig,
+  FilenameContainsRuleConfig,
+  FilenameSuffixRuleConfig,
+  FileExtensionRuleConfig,
+  FilenameRegexRuleConfig,
+  ShareDateRuleConfig
+} from '../types/rule';
 
 interface MagnetScore {
   magnet: MagnetInfo;
@@ -23,6 +33,7 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
 }) => {
   const [magnetScores, setMagnetScores] = useState<MagnetScore[]>([]);
   const [sortedMagnets, setSortedMagnets] = useState<MagnetInfo[]>([]);
+  const [matchedRules, setMatchedRules] = useState<Map<string, number[]>>(new Map());
 
   useEffect(() => {
     const loadScores = async () => {
@@ -36,6 +47,23 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
         return scoreB - scoreA;
       });
       setSortedMagnets(sorted);
+
+      // 获取匹配的规则序号
+      const result = await chrome.storage.local.get(['magnetRules']);
+      const rules: MagnetRule[] = result.magnetRules || [];
+      const enabledRules = rules.filter(rule => rule.enabled);
+      
+      const newMatchedRules = new Map<string, number[]>();
+      magnets.forEach(magnet => {
+        const matchedRuleNumbers: number[] = [];
+        enabledRules.forEach((rule, index) => {
+          if (isRuleMatched(rule, magnet)) {
+            matchedRuleNumbers.push(index + 1);
+          }
+        });
+        newMatchedRules.set(magnet.magnet_hash, matchedRuleNumbers);
+      });
+      setMatchedRules(newMatchedRules);
     };
     loadScores();
   }, [magnets]);
@@ -77,6 +105,7 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
         {sortedMagnets.map((magnet) => {
           const saved = isMagnetSaved(magnet);
           const score = magnetScores.find(s => s.magnet.magnet_hash === magnet.magnet_hash)?.finalScore || 0;
+          const matchedRuleNumbers = matchedRules.get(magnet.magnet_hash) || [];
           return (
             <div
               key={magnet.magnet_hash}
@@ -97,12 +126,28 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
                   {saved ? '已保存' : '未保存'}
                 </span>
               </div>
+              
               <div className="magnet-item-info">
                 <div className="magnet-item-metrics">
                   <span className="magnet-item-size">大小: {formatFileSize(magnet.fileSize)}</span>
-                  <span className="magnet-item-score">评分: {formatFileSize(score)}</span>
+                  <span className="magnet-item-score">评分: {score}</span>
+                  <span className="magnet-item-date">发布日期: {magnet.date}</span>
                 </div>
-                <span>{magnet.date}</span>
+                {matchedRuleNumbers.length > 0 && (
+                  <div className="magnet-item-rules">
+                    <span className="magnet-item-rules-label">匹配规则:</span>
+                    <div className="magnet-item-rules-numbers">
+                      {matchedRuleNumbers.map(number => (
+                        <div 
+                          key={number} 
+                          className="magnet-item-rule-number"
+                        >
+                          {number}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -110,4 +155,64 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
       </div>
     </div>
   );
+};
+
+// 判断规则是否匹配
+const isRuleMatched = (rule: MagnetRule, magnet: MagnetInfo): boolean => {
+  const { type, config } = rule;
+  
+  switch (type) {
+    case RuleType.FILE_SIZE: {
+      const fileSizeConfig = config as FileSizeRuleConfig;
+      return fileSizeConfig.condition === 'greater' 
+        ? magnet.fileSize > fileSizeConfig.threshold
+        : magnet.fileSize < fileSizeConfig.threshold;
+    }
+    case RuleType.FILENAME_CONTAINS: {
+      const containsConfig = config as FilenameContainsRuleConfig;
+      return containsConfig.keywords.some(keyword => 
+        magnet.fileName.toLowerCase().includes(keyword.toLowerCase())
+      );
+    }
+    case RuleType.FILENAME_SUFFIX: {
+      const suffixConfig = config as FilenameSuffixRuleConfig;
+      return suffixConfig.suffixes.some(suffix => 
+        magnet.fileName.toLowerCase().endsWith(suffix.toLowerCase())
+      );
+    }
+    case RuleType.FILE_EXTENSION: {
+      const extensionConfig = config as FileExtensionRuleConfig;
+      const fileExt = magnet.fileName.split('.').pop()?.toLowerCase() || '';
+      return extensionConfig.extensions.some(ext => 
+        ext.toLowerCase() === fileExt
+      );
+    }
+    case RuleType.FILENAME_REGEX: {
+      const regexConfig = config as FilenameRegexRuleConfig;
+      try {
+        const regex = new RegExp(regexConfig.pattern);
+        return regex.test(magnet.fileName);
+      } catch {
+        return false;
+      }
+    }
+    case RuleType.SHARE_DATE: {
+      const dateConfig = config as ShareDateRuleConfig;
+      const magnetDate = new Date(magnet.date);
+      const ruleDate = new Date(dateConfig.date);
+      
+      switch (dateConfig.condition) {
+        case 'before':
+          return magnetDate < ruleDate;
+        case 'after':
+          return magnetDate > ruleDate;
+        case 'equal':
+          return magnetDate.toDateString() === ruleDate.toDateString();
+        default:
+          return false;
+      }
+    }
+    default:
+      return false;
+  }
 }; 

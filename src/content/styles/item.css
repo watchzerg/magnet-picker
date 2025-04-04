@@ -48,10 +48,9 @@
 
 .magnet-item-info {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
-  font-size: 12px;
-  color: #6b7280;
+  margin-top: 8px;
 }
 
 .magnet-item-badge {
@@ -101,20 +100,81 @@
 
 .magnet-item-metrics {
   display: flex;
-  gap: 12px;
-  font-size: 12px;
-  color: #6b7280;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
 }
 
 .magnet-item-size,
-.magnet-item-score {
-  padding: 2px 6px;
+.magnet-item-score,
+.magnet-item-date {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
   border-radius: 4px;
   background-color: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
   white-space: nowrap;
 }
 
 .magnet-item-score {
   background-color: rgba(59, 130, 246, 0.1);
   color: rgb(37, 99, 235);
+}
+
+/* 匹配规则样式 */
+.magnet-item-rules {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.magnet-item-rules-label {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.magnet-item-rules-numbers {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.magnet-item-rule-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgb(37, 99, 235);
+  background-color: rgba(59, 130, 246, 0.1);
+  border-radius: 50%;
+  transition: all 0.2s ease-in-out;
+}
+
+.magnet-item-rule-number:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+  transform: scale(1.1);
+}
+
+/* 暗色主题适配 */
+@media (prefers-color-scheme: dark) {
+  .magnet-item-rules-label {
+    color: #9ca3af;
+  }
+
+  .magnet-item-rule-number {
+    color: rgb(147, 197, 253);
+    background-color: rgba(59, 130, 246, 0.2);
+  }
+
+  .magnet-item-rule-number:hover {
+    background-color: rgba(59, 130, 246, 0.3);
+  }
 } 
