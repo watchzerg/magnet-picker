@@ -17,13 +17,15 @@ export const handleExportMagnets = (magnets: MagnetInfo[]) => {
 
 export const handleExportAll = (magnets: MagnetInfo[]) => {
     const csvContent = [
-        ['文件名', '大小', 'Magnet链接', '发布日期', '保存时间'],
+        ['文件名', '大小', 'Magnet链接', '发布日期', '保存时间', '来源页面', '番号'],
         ...magnets.map(magnet => [
             magnet.fileName,
             formatFileSize(magnet.fileSize),
             `magnet:?xt=urn:btih:${magnet.magnet_hash}`,
             magnet.date,
-            new Date().toLocaleString('zh-CN')
+            new Date().toLocaleString('zh-CN'),
+            magnet.source_url,
+            magnet.catalog_number
         ])
     ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
 
