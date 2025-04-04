@@ -74,23 +74,19 @@ chrome.runtime.onMessage.addListener((
 
 async function saveMagnets(magnets: MagnetInfo[]): Promise<void> {
   try {
-    const { magnets: existingMagnets = [] } = await chrome.storage.local.get('magnets');
+    const { magnets: existingMagnets = {} } = await chrome.storage.local.get('magnets');
     
-    // 创建现有磁力链接的哈希集合
-    const existingHashes = new Set(existingMagnets.map((m: MagnetInfo) => m.hash));
+    // 将新的磁力链接添加到现有的对象中
+    const updatedMagnets = {
+      ...existingMagnets,
+      ...magnets.reduce((acc, magnet) => ({
+        ...acc,
+        [magnet.hash]: magnet
+      }), {})
+    };
     
-    // 过滤掉已存在的磁力链接
-    const newMagnets = magnets.filter(magnet => !existingHashes.has(magnet.hash));
-    
-    // 如果没有新的磁力链接，直接返回
-    if (newMagnets.length === 0) {
-      console.log('Background: 所有磁力链接已存在，无需保存');
-      return;
-    }
-    
-    const updatedMagnets = [...existingMagnets, ...newMagnets];
     await chrome.storage.local.set({ magnets: updatedMagnets });
-    console.log('Background: 保存完成，新增:', newMagnets.length, '总数:', updatedMagnets.length);
+    console.log('Background: 保存完成，总数:', Object.keys(updatedMagnets).length);
   } catch (error) {
     console.error('Background: 保存出错:', error);
     throw error;
@@ -99,9 +95,10 @@ async function saveMagnets(magnets: MagnetInfo[]): Promise<void> {
 
 async function getMagnets(): Promise<MagnetInfo[]> {
   try {
-    const { magnets = [] } = await chrome.storage.local.get('magnets');
-    console.log('Background: 获取成功，数量:', magnets.length);
-    return magnets;
+    const { magnets = {} } = await chrome.storage.local.get('magnets');
+    const magnetList = Object.values(magnets) as MagnetInfo[];
+    console.log('Background: 获取成功，数量:', magnetList.length);
+    return magnetList;
   } catch (error) {
     console.error('Background: 获取出错:', error);
     return [];
@@ -110,19 +107,19 @@ async function getMagnets(): Promise<MagnetInfo[]> {
 
 async function removeMagnet(magnet: MagnetInfo): Promise<void> {
   try {
-    const { magnets: existingMagnets = [] } = await chrome.storage.local.get('magnets');
+    const { magnets: existingMagnets = {} } = await chrome.storage.local.get('magnets');
     
-    // 过滤掉要删除的磁力链接
-    const updatedMagnets = existingMagnets.filter((m: MagnetInfo) => m.hash !== magnet.hash);
-    
-    // 如果没有找到要删除的磁力链接
-    if (updatedMagnets.length === existingMagnets.length) {
+    // 如果磁力链接不存在
+    if (!existingMagnets[magnet.hash]) {
       console.log('Background: 未找到要删除的磁力链接');
       return;
     }
     
+    // 删除指定的磁力链接
+    const { [magnet.hash]: removed, ...updatedMagnets } = existingMagnets;
+    
     await chrome.storage.local.set({ magnets: updatedMagnets });
-    console.log('Background: 删除完成，剩余:', updatedMagnets.length);
+    console.log('Background: 删除完成，剩余:', Object.keys(updatedMagnets).length);
   } catch (error) {
     console.error('Background: 删除出错:', error);
     throw error;

@@ -11,6 +11,10 @@ export interface MagnetStorage {
     [hash: string]: MagnetInfo;
 }
 
+export interface StorageData {
+    magnets: MagnetStorage;
+}
+
 export interface PaginationProps {
     currentPage: number;
     totalPages: number;
