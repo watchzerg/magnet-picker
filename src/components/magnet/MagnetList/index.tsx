@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { MagnetListProps, MagnetInfo } from '../../../types/magnet';
 import { Pagination } from '../../Pagination';
 import { MagnetListItem } from './MagnetListItem';
-import { handleExportMagnets } from './MagnetListActions';
+import { handleExportMagnets, handleExportAll } from './MagnetListActions';
 
 const isValidMagnet = (magnet: any): magnet is MagnetInfo => {
     return (
@@ -63,8 +63,24 @@ export const MagnetList: React.FC<MagnetListProps> = ({
             <div className="magnet-list-header">
                 <h3>已保存的磁力链接 ({validMagnets.length})</h3>
                 <div className="magnet-list-actions">
-                    <button onClick={() => handleExportMagnets(validMagnets)}>导出</button>
-                    <button onClick={handleClearClick}>清空</button>
+                    <button 
+                        onClick={() => handleExportMagnets(validMagnets)}
+                        className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                    >
+                        导出Magnet
+                    </button>
+                    <button 
+                        onClick={() => handleExportAll(validMagnets)}
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                    >
+                        导出所有列
+                    </button>
+                    <button 
+                        onClick={handleClearClick}
+                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                    >
+                        清空
+                    </button>
                 </div>
             </div>
             {showConfirmDialog && (
