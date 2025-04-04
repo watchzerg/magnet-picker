@@ -37,7 +37,7 @@ export const MagnetManagementTab: React.FC = () => {
                 onPageChange={setCurrentPage}
                 onDeleteMagnet={async (hash) => {
                     try {
-                        const updatedMagnets = magnets.filter(m => m.hash !== hash);
+                        const updatedMagnets = magnets.filter(m => m.magnet_hash !== hash);
                         await chrome.storage.local.set({ magnets: updatedMagnets });
                     } catch (error) {
                         console.error('删除磁力链接失败:', error);

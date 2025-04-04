@@ -9,7 +9,7 @@ export const isValidMagnet = (magnet: any): magnet is MagnetInfo => {
     }
 
     // 检查必需字段
-    const requiredFields = ['url'];
+    const requiredFields = ['magnet_link'];
     const missingFields = requiredFields.filter(field => !magnet[field]);
     if (missingFields.length > 0) {
         console.warn(`Missing required fields: ${missingFields.join(', ')}`, magnet);
@@ -17,12 +17,14 @@ export const isValidMagnet = (magnet: any): magnet is MagnetInfo => {
     }
 
     // 尝试从 URL 中提取哈希值
-    if (!magnet.hash && magnet.url) {
-        magnet.hash = extractHashFromMagnet(magnet.url);
+    if (!magnet.magnet_hash && magnet.magnet_link) {
+        magnet.magnet_hash = extractHashFromMagnet(magnet.magnet_link);
     }
 
     // 设置默认值
     magnet.fileName = magnet.fileName || '未知文件名';
+    magnet.source_url = magnet.source_url || '';
+    magnet.catalog_number = magnet.catalog_number || '';
     
     // 处理 fileSize
     if (typeof magnet.fileSize === 'string') {
@@ -34,6 +36,16 @@ export const isValidMagnet = (magnet: any): magnet is MagnetInfo => {
     }
     
     magnet.date = magnet.date || new Date().toISOString().split('T')[0];
+
+    // 处理字段重命名的兼容性
+    if (magnet.url && !magnet.magnet_link) {
+        magnet.magnet_link = magnet.url;
+        delete magnet.url;
+    }
+    if (magnet.hash && !magnet.magnet_hash) {
+        magnet.magnet_hash = magnet.hash;
+        delete magnet.hash;
+    }
 
     return true;
 }; 

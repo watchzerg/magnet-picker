@@ -6,7 +6,6 @@ import { usePanelState } from '../hooks/usePanelState';
 import { useStorageListener } from '../hooks/useStorageListener';
 import { MagnetService } from '../services/MagnetService';
 import { StorageService } from '../services/StorageService';
-import { selectMagnetsByScore } from '../../utils/magnet';
 
 interface MagnetPickerProps {
   magnetService: MagnetService;
@@ -23,7 +22,6 @@ export const MagnetPicker: React.FC<MagnetPickerProps> = ({ magnetService, stora
   // 监听magnets状态变化
   useEffect(() => {
     if (magnetParser.magnets.length > 0 && isParsingRef.current) {
-      console.log('MagnetPicker: 磁力链接状态已更新:', magnetParser.magnets.length);
       handleMagnetsUpdate(magnetParser.magnets);
       isParsingRef.current = false;
     }
@@ -34,7 +32,6 @@ export const MagnetPicker: React.FC<MagnetPickerProps> = ({ magnetService, stora
     storageService,
     currentMagnets,
     async (savedStates: Map<string, boolean>) => {
-      console.log('MagnetPicker: 存储状态变化，更新面板');
       await panelState.showPanel(currentMagnets);
     }
   );
@@ -42,19 +39,14 @@ export const MagnetPicker: React.FC<MagnetPickerProps> = ({ magnetService, stora
   useEffect(() => {
     const init = async () => {
       if (isValidPage()) {
-        console.log('MagnetPicker: 有效页面，创建按钮');
         await panelState.pageStateManager.init();
         const button = createFloatingButton(() => {
-          console.log('MagnetPicker: 按钮被点击');
           parseMagnets();
         });
         if (button) {
           buttonRef.current = button;
           document.body.appendChild(button);
-          console.log('MagnetPicker: 浮动按钮已创建');
         }
-      } else {
-        console.log('MagnetPicker: 无效页面，URL:', window.location.href);
       }
     };
 
@@ -68,16 +60,26 @@ export const MagnetPicker: React.FC<MagnetPickerProps> = ({ magnetService, stora
   }, []);
 
   const handleMagnetsUpdate = async (magnets: MagnetInfo[]) => {
-    console.log('MagnetPicker: 处理磁力链接更新:', magnets.length);
+    console.log('[Magnet保存] 开始处理磁力链接，数量:', magnets.length);
     setCurrentMagnets(magnets);
     await panelState.showPanel(magnets);
 
-    if (!panelState.pageStateManager.hasDefaultSaved()) {
-      console.log('MagnetPicker: 本session首次打开，执行默认保存');
+    // 检查是否是首次打开页面（session级别）
+    const isFirstOpen = !panelState.pageStateManager.hasDefaultSaved();
+    console.log('[Magnet保存] 是否首次打开页面:', isFirstOpen);
+
+    if (isFirstOpen) {
+      console.log('[Magnet保存] 本session首次打开，准备执行默认保存');
       const magnetsToSave = await magnetService.selectMagnetsToSave(magnets);
+      console.log('[Magnet保存] 将要保存的磁力链接数量:', magnetsToSave.length);
       
       // 保存所有选中的磁力链接
       for (const magnet of magnetsToSave) {
+        console.log('[Magnet保存] 正在保存:', {
+          fileName: magnet.fileName,
+          hash: magnet.magnet_hash,
+          size: magnet.fileSize
+        });
         const success = await magnetService.handleToggleSave(magnet, false);
         if (!success) {
           showToast('保存失败，请重试', 'error');
@@ -87,26 +89,39 @@ export const MagnetPicker: React.FC<MagnetPickerProps> = ({ magnetService, stora
       
       await panelState.pageStateManager.setDefaultSaved();
       await panelState.showPanel(magnets);
-    } else {
-      const allUnsaved = await panelState.pageStateManager.areAllMagnetsUnsaved(magnets);
-      if (allUnsaved) {
-        console.log('MagnetPicker: 所有磁力链接都未保存，执行默认保存');
-        const magnetsToSave = await magnetService.selectMagnetsToSave(magnets);
-        
-        // 保存所有选中的磁力链接
-        for (const magnet of magnetsToSave) {
-          const success = await magnetService.handleToggleSave(magnet, false);
-          if (!success) {
-            showToast('保存失败，请重试', 'error');
-            break;
-          }
-        }
-        
-        await panelState.showPanel(magnets);
-      } else {
-        console.log('MagnetPicker: 已有磁力链接处于保存状态，无需执行默认保存');
+      console.log('[Magnet保存] 首次打开保存完成');
+      return;
+    }
+
+    // 检查当前页面的所有magnet是否都未保存
+    const allUnsaved = await panelState.pageStateManager.areAllMagnetsUnsaved(magnets);
+    console.log('[Magnet保存] 是否所有磁力链接都未保存:', allUnsaved);
+
+    if (!allUnsaved) {
+      console.log('[Magnet保存] 已有磁力链接处于保存状态，跳过默认保存');
+      return;
+    }
+
+    console.log('[Magnet保存] 所有磁力链接都未保存，准备执行默认保存');
+    const magnetsToSave = await magnetService.selectMagnetsToSave(magnets);
+    console.log('[Magnet保存] 将要保存的磁力链接数量:', magnetsToSave.length);
+    
+    // 保存所有选中的磁力链接
+    for (const magnet of magnetsToSave) {
+      console.log('[Magnet保存] 正在保存:', {
+        fileName: magnet.fileName,
+        hash: magnet.magnet_hash,
+        size: magnet.fileSize
+      });
+      const success = await magnetService.handleToggleSave(magnet, false);
+      if (!success) {
+        showToast('保存失败，请重试', 'error');
+        break;
       }
     }
+    
+    await panelState.showPanel(magnets);
+    console.log('[Magnet保存] 默认保存完成');
   };
 
   const parseMagnets = async () => {
@@ -114,7 +129,7 @@ export const MagnetPicker: React.FC<MagnetPickerProps> = ({ magnetService, stora
       isParsingRef.current = true;
       await magnetParser.parseMagnets();
     } catch (error) {
-      console.error('MagnetPicker: 解析出错:', error);
+      console.error('解析出错，请重试');
       showToast('解析出错，请重试', 'error');
       isParsingRef.current = false;
     }

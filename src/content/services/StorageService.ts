@@ -89,11 +89,11 @@ export class StorageService {
   public async getSavedMagnetStates(currentMagnets: MagnetInfo[]): Promise<Map<string, boolean>> {
     return new Promise((resolve) => {
       chrome.runtime.sendMessage({ type: 'GET_MAGNETS' }, (savedMagnets: MagnetInfo[]) => {
-        const savedHashes = new Set(savedMagnets.map(m => m.hash));
+        const savedHashes = new Set(savedMagnets.map(m => m.magnet_hash));
         const states = new Map<string, boolean>();
         
         currentMagnets.forEach(magnet => {
-          states.set(magnet.hash, savedHashes.has(magnet.hash));
+          states.set(magnet.magnet_hash, savedHashes.has(magnet.magnet_hash));
         });
         
         resolve(states);

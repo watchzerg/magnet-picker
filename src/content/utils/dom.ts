@@ -1,4 +1,3 @@
-import { MagnetInfo } from '../../types/magnet';
 import { DOMRefs } from '../types/content';
 
 /**

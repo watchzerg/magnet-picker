@@ -4,11 +4,16 @@
   "description": "Chrome extension for parsing and saving magnet links from specific websites",
   "scripts": {
     "build": "npm run generate-icons && webpack && npm run copy-static && npm run check-build",
+    "build:prod": "cross-env NODE_ENV=production npm run build",
     "watch": "webpack --watch",
     "dev": "npm run build && npm run watch",
     "generate-icons": "node scripts/generate-icons.js",
     "copy-static": "powershell -Command \"New-Item -ItemType Directory -Force -Path dist/content/styles, dist/assets, dist/popup, dist/options; Get-Content src/content/styles/button.css, src/content/styles/panel.css, src/content/styles/item.css, src/content/styles/toast.css, src/content/styles/scrollbar.css, src/content/styles/animations.css, src/content/styles/theme-light.css, src/content/styles/theme-dark.css | Set-Content dist/content/styles/index.css; Copy-Item -Force src/manifest.json dist/; Copy-Item -Force src/assets/* dist/assets/; Copy-Item -Force src/popup/popup.html dist/popup/; Copy-Item -Force src/popup/popup.css dist/popup/; Copy-Item -Force src/options/options.html dist/options/; Copy-Item -Force src/options/options.css dist/options/\"",
-    "check-build": "ts-node scripts/check-build.ts"
+    "check-build": "ts-node scripts/check-build.ts",
+    "analyze": "set ANALYZE=true && webpack",
+    "analyze:report": "webpack-bundle-analyzer --port 8888 ./dist/stats.json",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" --fix",
+    "lint:check": "eslint \"src/**/*.{ts,tsx}\""
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.0.2",
@@ -22,13 +27,20 @@
     "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.23.0",
     "@types/chrome": "^0.0.260",
     "@types/node": "^20.11.24",
     "@types/react": "^18.2.61",
     "@types/react-dom": "^18.2.19",
+    "@typescript-eslint/eslint-plugin": "^8.29.0",
+    "@typescript-eslint/parser": "^8.29.0",
     "autoprefixer": "^10.4.21",
     "copy-webpack-plugin": "^13.0.0",
+    "cross-env": "^7.0.3",
     "css-loader": "^7.1.2",
+    "eslint": "^9.23.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-unused-imports": "^4.1.4",
     "mini-css-extract-plugin": "^2.9.2",
     "postcss": "^8.5.3",
     "postcss-loader": "^8.1.1",
@@ -36,10 +48,12 @@
     "style-loader": "^4.0.0",
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
+    "terser-webpack-plugin": "^5.3.14",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
     "webpack": "^5.90.3",
+    "webpack-bundle-analyzer": "^4.10.2",
     "webpack-cli": "^5.1.4"
   }
 }

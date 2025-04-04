@@ -35,14 +35,14 @@ export class PageStateManager {
             if (response?.success) {
               resolve(response.state);
             } else {
-              console.error('获取页面状态失败:', response?.error);
+              console.error('获取页面状态失败');
               resolve(null);
             }
           }
         );
       });
     } catch (error) {
-      console.error('获取页面状态失败:', error);
+      console.error('获取页面状态失败');
       return null;
     }
   }
@@ -59,14 +59,14 @@ export class PageStateManager {
             if (response?.success) {
               resolve();
             } else {
-              console.error('保存页面状态失败:', response?.error);
+              console.error('保存页面状态失败');
               reject(new Error('保存页面状态失败'));
             }
           }
         );
       });
     } catch (error) {
-      console.error('保存页面状态失败:', error);
+      console.error('保存页面状态失败');
       throw error;
     }
   }
@@ -75,25 +75,34 @@ export class PageStateManager {
   async setDefaultSaved(): Promise<void> {
     if (!this.state) return;
 
+    console.log('[Magnet保存] 设置默认保存标记');
     this.state.hasDefaultSave = true;
     await this.saveState();
   }
 
   // 检查是否已执行默认保存
   hasDefaultSaved(): boolean {
-    return this.state?.hasDefaultSave || false;
+    const result = this.state?.hasDefaultSave || false;
+    console.log('[Magnet保存] 检查是否已执行默认保存:', result);
+    return result;
   }
 
   // 获取实际保存的磁力链接状态
   async getSavedMagnetStates(currentMagnets: MagnetInfo[]): Promise<Map<string, boolean>> {
     return new Promise((resolve) => {
       chrome.runtime.sendMessage({ type: 'GET_MAGNETS' }, (savedMagnets: MagnetInfo[]) => {
-        const savedHashes = new Set(savedMagnets.map(m => m.hash));
+        const savedHashes = new Set(savedMagnets.map(m => m.magnet_hash));
         const states = new Map<string, boolean>();
         
         // 对当前页面的每个magnet，检查是否在已保存列表中
         currentMagnets.forEach(magnet => {
-          states.set(magnet.hash, savedHashes.has(magnet.hash));
+          states.set(magnet.magnet_hash, savedHashes.has(magnet.magnet_hash));
+        });
+        
+        console.log('[Magnet保存] 获取已保存状态:', {
+          当前页面磁力链接数: currentMagnets.length,
+          已保存磁力链接数: savedMagnets.length,
+          当前页面已保存数: Array.from(states.values()).filter(v => v).length
         });
         
         resolve(states);
@@ -104,7 +113,9 @@ export class PageStateManager {
   // 检查是否所有磁力链接都未保存
   async areAllMagnetsUnsaved(currentMagnets: MagnetInfo[]): Promise<boolean> {
     const savedStates = await this.getSavedMagnetStates(currentMagnets);
-    return Array.from(savedStates.values()).every(state => !state);
+    const result = Array.from(savedStates.values()).every(state => !state);
+    console.log('[Magnet保存] 检查是否所有磁力链接都未保存:', result);
+    return result;
   }
 
   // 清理过期的页面状态（可选，在合适的时机调用）
@@ -117,14 +128,14 @@ export class PageStateManager {
             if (response?.success) {
               resolve();
             } else {
-              console.error('清理页面状态失败:', response?.error);
+              console.error('清理页面状态失败');
               reject(new Error('清理页面状态失败'));
             }
           }
         );
       });
     } catch (error) {
-      console.error('清理页面状态失败:', error);
+      console.error('清理页面状态失败');
     }
   }
 } 

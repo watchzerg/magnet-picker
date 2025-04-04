@@ -2,18 +2,16 @@ import { MagnetInfo } from '../../../types/magnet';
 import { formatFileSize } from '../../../utils/magnet';
 
 export const handleExportMagnets = (magnets: MagnetInfo[]) => {
-    const magnetContent = magnets
-        .map(magnet => `magnet:?xt=urn:btih:${magnet.hash}`)
+    const content = magnets
+        .map(magnet => `magnet:?xt=urn:btih:${magnet.magnet_hash}`)
         .join('\n');
     
-    const blob = new Blob([magnetContent], { type: 'text/plain;charset=utf-8' });
+    const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `magnets_${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(a);
+    a.download = 'magnets.txt';
     a.click();
-    document.body.removeChild(a);
     URL.revokeObjectURL(url);
 };
 
@@ -23,7 +21,7 @@ export const handleExportAll = (magnets: MagnetInfo[]) => {
         ...magnets.map(magnet => [
             magnet.fileName,
             formatFileSize(magnet.fileSize),
-            `magnet:?xt=urn:btih:${magnet.hash}`,
+            `magnet:?xt=urn:btih:${magnet.magnet_hash}`,
             magnet.date,
             new Date().toLocaleString('zh-CN')
         ])

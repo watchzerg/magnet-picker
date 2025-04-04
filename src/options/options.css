@@ -33,6 +33,30 @@
     @apply space-y-4;
   }
 
+  .magnet-list-header {
+    @apply flex justify-between items-center mb-4;
+  }
+
+  .magnet-list-header h3 {
+    @apply text-lg font-medium;
+  }
+
+  .magnet-list-actions {
+    @apply flex space-x-2;
+  }
+
+  .magnet-list-actions button {
+    @apply px-4 py-2 rounded-lg text-white transition-colors;
+  }
+
+  .magnet-list-actions button:first-child {
+    @apply bg-blue-500 hover:bg-blue-600;
+  }
+
+  .magnet-list-actions button:last-child {
+    @apply bg-red-500 hover:bg-red-600;
+  }
+
   .magnet-item {
     @apply bg-white p-4 rounded-lg shadow-sm;
   }

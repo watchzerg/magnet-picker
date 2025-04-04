@@ -1,14 +1,16 @@
 export interface MagnetInfo {
-    url: string;      // Magnet链接
+    magnet_link: string;      // Magnet链接
     fileName: string; // 文件名
     fileSize: number; // 文件大小（字节）
     date: string;     // 发布日期
-    hash: string;     // Magnet哈希值
+    magnet_hash: string;     // Magnet哈希值
     saveTime: string; // 保存时间
+    source_url: string; // 来源页面URL
+    catalog_number: string; // 番号
 }
 
 export interface MagnetStorage {
-    [hash: string]: MagnetInfo;
+    [magnet_hash: string]: MagnetInfo;
 }
 
 export interface StorageData {

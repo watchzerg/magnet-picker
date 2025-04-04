@@ -57,7 +57,7 @@ export const useMagnetParser = (magnetService: MagnetService, storageService: St
     // 更新保存状态
     setSavedStates(prevStates => {
       const newStates = new Map(prevStates);
-      newStates.set(magnet.hash, !isSaved);
+      newStates.set(magnet.magnet_hash, !isSaved);
       return newStates;
     });
   }, [magnetService]);

@@ -28,7 +28,7 @@ function displayMagnets(magnets: MagnetInfo[]): void {
     .map(
       (magnet) => `
         <div class="magnet-item">
-          <a href="${magnet.url}" target="_blank">${magnet.fileName}</a>
+          <a href="${magnet.magnet_link}" target="_blank">${magnet.fileName}</a>
           <div class="magnet-info">
             <span>${formatFileSize(magnet.fileSize)}</span>
             <span>${magnet.date}</span>

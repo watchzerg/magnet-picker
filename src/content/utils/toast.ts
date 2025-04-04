@@ -1,4 +1,3 @@
-import { ToastProps } from '../types/content';
 
 /**
  * 显示Toast消息

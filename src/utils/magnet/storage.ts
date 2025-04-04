@@ -29,7 +29,7 @@ export const getMagnetsFromStorage = async (): Promise<MagnetInfo[]> => {
             console.log('Found array of magnets, converting to object format:', result.magnets);
             const magnetObject = result.magnets.reduce((acc, magnet) => {
                 if (isValidMagnet(magnet)) {
-                    acc[magnet.hash] = magnet;
+                    acc[magnet.magnet_hash] = magnet;
                 }
                 return acc;
             }, {} as MagnetStorage);

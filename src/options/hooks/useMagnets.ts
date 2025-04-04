@@ -9,12 +9,7 @@ export const useMagnets = () => {
 
     const loadMagnets = async () => {
         try {
-            console.log('Loading magnets from storage...');
             const magnetList = await getMagnetsFromStorage();
-            if (magnetList.length > 0) {
-                console.log('First magnet data format:', JSON.stringify(magnetList[0], null, 2));
-            }
-            console.log('Loaded magnets:', magnetList);
             const sortedMagnets = sortMagnetsBySize(magnetList);
             setMagnets(sortedMagnets);
         } catch (error) {
@@ -25,12 +20,10 @@ export const useMagnets = () => {
     };
 
     useEffect(() => {
-        console.log('useMagnets useEffect running');
         loadMagnets();
         
         const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
             if (changes.magnets) {
-                console.log('Storage changed, reloading magnets...');
                 loadMagnets();
             }
         };
@@ -47,7 +40,6 @@ export const useMagnets = () => {
         
         if (autoRefresh) {
             timer = setInterval(() => {
-                console.log('Auto refreshing magnets...');
                 loadMagnets();
             }, 5000);
         }

@@ -18,9 +18,8 @@ export const usePanelState = () => {
     const sortedMagnets = await sortMagnetsByScore(magnets);
     setCurrentMagnets(sortedMagnets);
     setIsPanelVisible(true);
-    console.log('MagnetPicker: 准备显示面板');
+
     if (!panelContainer || !root) {
-      console.error('MagnetPicker: 面板容器或根节点不存在，重新创建');
       panelContainer = createPanelContainer();
       document.body.appendChild(panelContainer);
       const innerContainer = panelContainer.querySelector('div');
@@ -31,7 +30,7 @@ export const usePanelState = () => {
     const savedStates = await pageStateManager.getSavedMagnetStates(sortedMagnets);
 
     if (!root) {
-      console.error('MagnetPicker: root 不存在，无法渲染面板');
+      console.error('面板渲染失败：root不存在');
       return;
     }
 
@@ -53,20 +52,17 @@ export const usePanelState = () => {
       if (panelContainer && panelContainer.contains(e.target as Node)) {
         return;
       }
-      console.log('MagnetPicker: 点击面板外部，关闭面板');
       hidePanel();
       document.removeEventListener('click', handleDocumentClick);
     };
 
     setTimeout(() => {
       document.addEventListener('click', handleDocumentClick);
-      console.log('MagnetPicker: 添加了点击事件监听器');
     }, 100);
   }, []);
 
   const hidePanel = useCallback(() => {
     setIsPanelVisible(false);
-    console.log('MagnetPicker: 关闭面板');
     if (root) {
       root.render(null);
     }
@@ -75,44 +71,37 @@ export const usePanelState = () => {
     }
   }, []);
 
-  const handleToggleSave = async (magnet: MagnetInfo, isSaved: boolean) => {
+  const handleToggleSave = useCallback(async (magnet: MagnetInfo, isSaved: boolean) => {
     try {
-      const response = await new Promise<{ success: boolean; error?: string }>((resolve) => {
-        chrome.runtime.sendMessage({
-          type: isSaved ? 'REMOVE_MAGNET' : 'SAVE_MAGNETS',
-          data: isSaved ? magnet : [magnet]
-        }, response => {
-          resolve(response || { success: false, error: 'No response from background' });
-        });
-      });
-
-      if (!response.success) {
-        console.error('保存磁力链接失败:', response.error);
-        showErrorMessage('保存失败，请重试');
+      if (isSaved) {
+        await chrome.runtime.sendMessage({ type: 'DELETE_MAGNET', hash: magnet.magnet_hash });
+        showSuccessMessage('已取消保存');
       } else {
-        showSuccessMessage(isSaved ? '已取消保存' : '已保存');
+        await chrome.runtime.sendMessage({ type: 'SAVE_MAGNET', magnet });
+        showSuccessMessage('已保存');
+      }
+
+      // 更新面板显示
+      const savedStates = await pageStateManager.getSavedMagnetStates(currentMagnets);
+      const panelProps = {
+        magnets: currentMagnets,
+        savedStates,
+        onClose: hidePanel,
+        onToggleSave: handleToggleSave
+      };
+
+      if (root) {
+        root.render(React.createElement(MagnetPanel, panelProps));
       }
     } catch (error) {
-      console.error('保存磁力链接出错:', error);
-      showErrorMessage('保存失败，请重试');
+      showErrorMessage('操作失败，请重试');
     }
-  };
-
-  const destroy = () => {
-    hidePanel();
-    if (panelContainer) {
-      panelContainer.remove();
-      panelContainer = null;
-    }
-    root = null;
-  };
+  }, [currentMagnets]);
 
   return {
     isPanelVisible,
-    currentMagnets,
     showPanel,
     hidePanel,
-    destroy,
     pageStateManager
   };
 }; 

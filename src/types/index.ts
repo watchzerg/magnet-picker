@@ -5,8 +5,9 @@ export type Message =
   | { type: 'GET_PAGE_STATE'; url: string }
   | { type: 'SAVE_PAGE_STATE'; state: PageState }
   | { type: 'SAVE_MAGNETS'; data: MagnetInfo[] }
+  | { type: 'SAVE_MAGNET'; magnet: MagnetInfo }
   | { type: 'GET_MAGNETS' }
-  | { type: 'REMOVE_MAGNET'; data: MagnetInfo }
+  | { type: 'DELETE_MAGNET'; hash: string }
   | { type: 'PARSE_MAGNETS' }
   | { type: 'CLEANUP_PAGE_STATES'; maxAge: number };
 
