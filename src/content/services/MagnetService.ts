@@ -2,6 +2,7 @@ import { MagnetInfo } from '../../types/magnet';
 import { parseFileSize } from '../../utils/magnet/size';
 import { selectMagnetsByScore, sortMagnetsByScore } from '../../utils/magnet/scoring';
 import { showErrorMessage, showSuccessMessage } from '../utils/toast';
+import { parseCatalogNumber } from '../../utils/titleParser';
 
 export class MagnetService {
   /**
@@ -10,6 +11,11 @@ export class MagnetService {
   public async findMagnets(): Promise<MagnetInfo[]> {
     // 等待磁力链接加载完成
     await this.waitForMagnets();
+
+    // 获取页面标题并解析番号
+    const titleElement = document.querySelector('h3');
+    const title = titleElement?.textContent?.trim() || '';
+    const catalogNumber = parseCatalogNumber(title);
 
     const magnets: MagnetInfo[] = [];
     // 查找所有包含磁力链接的行
@@ -37,7 +43,7 @@ export class MagnetService {
             magnet_hash: hash,
             saveTime: new Date().toISOString(),
             source_url: window.location.href,
-            catalog_number: ''
+            catalog_number: catalogNumber || ''
           };
           magnets.push(magnetInfo);
         }
