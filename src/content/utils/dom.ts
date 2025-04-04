@@ -29,10 +29,10 @@ export const createPanelContainer = (): HTMLDivElement => {
   panelContainer.style.top = '0';
   panelContainer.style.right = '0';
   panelContainer.style.zIndex = '999999';
-  panelContainer.style.display = 'block';
+  panelContainer.style.display = 'none';
   panelContainer.style.width = '100%';
   panelContainer.style.height = '100%';
-  panelContainer.style.pointerEvents = 'none';
+  panelContainer.style.pointerEvents = 'auto'; // 允许点击事件
   
   // 创建一个内部容器用于实际内容
   const innerContainer = document.createElement('div');
@@ -48,6 +48,16 @@ export const createPanelContainer = (): HTMLDivElement => {
   innerContainer.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.15)';
   innerContainer.style.padding = '16px';
   innerContainer.style.fontSize = '14px';
+  innerContainer.style.opacity = '1';
+  innerContainer.style.transform = 'none';
+  
+  // 添加点击事件处理
+  panelContainer.addEventListener('click', (e) => {
+    // 如果点击的是面板容器本身（而不是内部容器），则隐藏面板
+    if (e.target === panelContainer) {
+      panelContainer.style.display = 'none';
+    }
+  });
   
   panelContainer.appendChild(innerContainer);
   document.body.appendChild(panelContainer);

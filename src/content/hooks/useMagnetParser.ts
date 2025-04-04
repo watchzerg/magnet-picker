@@ -26,7 +26,7 @@ export const useMagnetParser = (magnetService: MagnetService, storageService: St
       // 检查是否需要默认保存
       const state = await storageService.getState();
       if (!state?.hasDefaultSave) {
-        const magnetsToSave = magnetService.selectMagnetsToSave(parsedMagnets);
+        const magnetsToSave = await magnetService.selectMagnetsToSave(parsedMagnets);
         await storageService.setDefaultSaved();
         
         // 保存选中的磁力链接

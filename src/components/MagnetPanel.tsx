@@ -22,11 +22,20 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
   onToggleSave 
 }) => {
   const [magnetScores, setMagnetScores] = useState<MagnetScore[]>([]);
+  const [sortedMagnets, setSortedMagnets] = useState<MagnetInfo[]>([]);
 
   useEffect(() => {
     const loadScores = async () => {
       const scores = await calculateMagnetScores(magnets);
       setMagnetScores(scores);
+      
+      // 根据分数排序磁力链接
+      const sorted = [...magnets].sort((a, b) => {
+        const scoreA = scores.find(s => s.magnet.magnet_hash === a.magnet_hash)?.finalScore || 0;
+        const scoreB = scores.find(s => s.magnet.magnet_hash === b.magnet_hash)?.finalScore || 0;
+        return scoreB - scoreA;
+      });
+      setSortedMagnets(sorted);
     };
     loadScores();
   }, [magnets]);
@@ -65,7 +74,7 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
       </div>
       
       <div className="magnet-panel-content">
-        {magnets.map((magnet) => {
+        {sortedMagnets.map((magnet) => {
           const saved = isMagnetSaved(magnet);
           const score = magnetScores.find(s => s.magnet.magnet_hash === magnet.magnet_hash)?.finalScore || 0;
           return (

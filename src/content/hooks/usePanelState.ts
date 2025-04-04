@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { createRoot, Root as ReactDOMRoot } from 'react-dom/client';
 import { MagnetInfo } from '../../types/magnet';
 import { MagnetPanel } from '../../components/MagnetPanel';
@@ -9,67 +9,67 @@ import { showErrorMessage, showSuccessMessage } from '../utils/toast';
 
 export const usePanelState = () => {
   const [isPanelVisible, setIsPanelVisible] = useState(false);
-  const [currentMagnets, setCurrentMagnets] = useState<MagnetInfo[]>([]);
-  let panelContainer: HTMLDivElement | null = null;
-  let root: ReactDOMRoot | null = null;
-  const pageStateManager = new PageStateManager(window.location.href);
+  const [magnets, setMagnets] = useState<Map<string, MagnetInfo>>(new Map());
+  const pageStateManager = useMemo(() => {
+    console.log('[Magnet保存] 创建PageStateManager实例，URL:', window.location.href);
+    return new PageStateManager(window.location.href);
+  }, []);
 
-  const showPanel = useCallback(async (magnets: MagnetInfo[]) => {
-    const sortedMagnets = await sortMagnetsByScore(magnets);
-    setCurrentMagnets(sortedMagnets);
+  const showPanel = async (newMagnets: MagnetInfo[]) => {
+    console.log('[Magnet保存] 开始显示面板，磁力链接数量:', newMagnets.length);
+    console.log('[Magnet保存] 当前pageStateManager:', pageStateManager);
     setIsPanelVisible(true);
+    setMagnets(new Map(newMagnets.map(m => [m.magnet_hash, m])));
+    
+    // 获取保存状态
+    const savedStates = await pageStateManager.getSavedMagnetStates(newMagnets);
+    console.log('[Magnet保存] 获取到的保存状态:', {
+      磁力链接数量: newMagnets.length,
+      已保存数量: Array.from(savedStates.values()).filter(v => v).length
+    });
 
-    if (!panelContainer || !root) {
-      panelContainer = createPanelContainer();
-      document.body.appendChild(panelContainer);
-      const innerContainer = panelContainer.querySelector('div');
-      if (!innerContainer) throw new Error('Inner container not found');
-      root = createRoot(innerContainer);
-    }
-
-    const savedStates = await pageStateManager.getSavedMagnetStates(sortedMagnets);
-
-    if (!root) {
-      console.error('面板渲染失败：root不存在');
+    // 创建面板容器
+    const panelContainer = createPanelContainer();
+    console.log('[Magnet保存] 创建的面板容器:', panelContainer);
+    
+    // 添加到页面
+    document.body.appendChild(panelContainer);
+    console.log('[Magnet保存] 面板容器已添加到页面');
+    
+    // 获取内部容器
+    const innerContainer = panelContainer.querySelector('div');
+    if (!innerContainer) {
+      console.error('[Magnet保存] 未找到内部容器');
       return;
     }
-
+    console.log('[Magnet保存] 找到内部容器:', innerContainer);
+    
+    // 创建React根节点
+    const root = createRoot(innerContainer);
+    console.log('[Magnet保存] 创建React根节点');
+    
+    // 渲染面板
     const panelProps = {
-      magnets: sortedMagnets,
+      magnets: newMagnets,
       savedStates,
       onClose: hidePanel,
       onToggleSave: handleToggleSave
     };
-
+    console.log('[Magnet保存] 准备渲染面板，参数:', panelProps);
+    
     root.render(React.createElement(MagnetPanel, panelProps));
+    console.log('[Magnet保存] 面板已渲染');
+    
+    // 显示面板
+    panelContainer.style.display = 'block';
+    console.log('[Magnet保存] 面板已显示');
+  };
 
-    if (panelContainer) {
-      panelContainer.style.display = 'block';
-    }
-
-    // 添加点击事件监听器到 document
-    const handleDocumentClick = (e: MouseEvent) => {
-      if (panelContainer && panelContainer.contains(e.target as Node)) {
-        return;
-      }
-      hidePanel();
-      document.removeEventListener('click', handleDocumentClick);
-    };
-
-    setTimeout(() => {
-      document.addEventListener('click', handleDocumentClick);
-    }, 100);
-  }, []);
-
-  const hidePanel = useCallback(() => {
+  const hidePanel = () => {
+    console.log('[Magnet保存] 隐藏面板');
     setIsPanelVisible(false);
-    if (root) {
-      root.render(null);
-    }
-    if (panelContainer) {
-      panelContainer.style.display = 'none';
-    }
-  }, []);
+    setMagnets(new Map());
+  };
 
   const handleToggleSave = useCallback(async (magnet: MagnetInfo, isSaved: boolean) => {
     try {
@@ -82,26 +82,34 @@ export const usePanelState = () => {
       }
 
       // 更新面板显示
-      const savedStates = await pageStateManager.getSavedMagnetStates(currentMagnets);
+      const savedStates = await pageStateManager.getSavedMagnetStates(Array.from(magnets.values()));
       const panelProps = {
-        magnets: currentMagnets,
+        magnets: Array.from(magnets.values()),
         savedStates,
         onClose: hidePanel,
         onToggleSave: handleToggleSave
       };
 
-      if (root) {
+      if (isPanelVisible) {
+        const panelContainer = createPanelContainer();
+        document.body.appendChild(panelContainer);
+        const innerContainer = panelContainer.querySelector('div');
+        if (!innerContainer) throw new Error('Inner container not found');
+        const root = createRoot(innerContainer);
         root.render(React.createElement(MagnetPanel, panelProps));
+        panelContainer.style.display = 'block';
       }
     } catch (error) {
       showErrorMessage('操作失败，请重试');
     }
-  }, [currentMagnets]);
+  }, [isPanelVisible, magnets, pageStateManager]);
 
   return {
     isPanelVisible,
     showPanel,
     hidePanel,
-    pageStateManager
+    magnets,
+    pageStateManager,
+    handleToggleSave
   };
 }; 

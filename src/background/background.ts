@@ -81,13 +81,20 @@ async function saveMagnets(magnets: MagnetInfo[]): Promise<void> {
     // 创建Map并初始化现有数据
     const existingMap = new Map<string, MagnetInfo>();
     
-    // 处理现有数据，确保是数组
-    const existingList = Array.isArray(existingMagnets) ? existingMagnets : Object.values(existingMagnets);
-    existingList.forEach(magnet => {
-      if (magnet && magnet.magnet_hash) {
-        existingMap.set(magnet.magnet_hash, magnet);
-      }
-    });
+    // 处理现有数据，确保是Map格式
+    if (Array.isArray(existingMagnets)) {
+      existingMagnets.forEach(magnet => {
+        if (magnet && magnet.magnet_hash) {
+          existingMap.set(magnet.magnet_hash, magnet);
+        }
+      });
+    } else {
+      Object.entries(existingMagnets).forEach(([hash, magnet]) => {
+        if (magnet && hash) {
+          existingMap.set(hash, magnet as MagnetInfo);
+        }
+      });
+    }
     
     // 过滤出不存在的磁力链接
     const newMagnets = magnets.filter(magnet => !existingMap.has(magnet.magnet_hash));
@@ -102,11 +109,11 @@ async function saveMagnets(magnets: MagnetInfo[]): Promise<void> {
       existingMap.set(magnet.magnet_hash, magnet);
     });
     
-    // 将Map转换回数组格式
-    const updatedMagnets = Array.from(existingMap.values());
+    // 将Map转换回对象格式
+    const updatedMagnets = Object.fromEntries(existingMap);
     
     await chrome.storage.local.set({ magnets: updatedMagnets });
-    console.log(`Background: 保存完成，新增${newMagnets.length}个，总数:`, updatedMagnets.length);
+    console.log(`Background: 保存完成，新增${newMagnets.length}个，总数:`, Object.keys(updatedMagnets).length);
   } catch (error) {
     console.error('Background: 保存出错:', error);
     throw error;
@@ -116,10 +123,13 @@ async function saveMagnets(magnets: MagnetInfo[]): Promise<void> {
 async function getMagnets(): Promise<MagnetInfo[]> {
   try {
     const { magnets = {} } = await chrome.storage.local.get('magnets');
+    
     // 确保返回的是数组
-    const magnetList = Array.isArray(magnets) ? magnets : Object.values(magnets);
-    console.log('Background: 获取成功，数量:', magnetList.length);
-    return magnetList;
+    if (Array.isArray(magnets)) {
+      return magnets;
+    } else {
+      return Object.values(magnets);
+    }
   } catch (error) {
     console.error('Background: 获取出错:', error);
     return [];
@@ -152,7 +162,15 @@ async function handleGetPageState(url: string, sendResponse: (response: any) => 
   try {
     const result = await chrome.storage.session.get('magnet_picker_page_states');
     const states = result.magnet_picker_page_states as SessionState || {};
-    sendResponse({ success: true, state: states[url] || null });
+    const state = states[url];
+    
+    console.log('Background: 获取页面状态:', {
+      url,
+      state,
+      allStates: states
+    });
+    
+    sendResponse({ success: true, state: state || null });
   } catch (error) {
     console.error('获取页面状态失败:', error);
     sendResponse({ success: false, error });
@@ -170,6 +188,12 @@ async function handleSavePageState(state: PageState, sendResponse: (response: an
       ...state,
       lastUpdate: Date.now()
     };
+
+    console.log('Background: 保存页面状态:', {
+      url: state.url,
+      state: states[state.url],
+      allStates: states
+    });
 
     // 保存到会话存储
     await chrome.storage.session.set({

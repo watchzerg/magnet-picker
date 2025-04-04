@@ -62,10 +62,12 @@ export const MagnetPicker: React.FC<MagnetPickerProps> = ({ magnetService, stora
   const handleMagnetsUpdate = async (magnets: MagnetInfo[]) => {
     console.log('[Magnet保存] 开始处理磁力链接，数量:', magnets.length);
     setCurrentMagnets(magnets);
+    console.log('[Magnet保存] 调用showPanel前');
     await panelState.showPanel(magnets);
+    console.log('[Magnet保存] 调用showPanel后');
 
     // 检查是否是首次打开页面（session级别）
-    const isFirstOpen = !panelState.pageStateManager.hasDefaultSaved();
+    const isFirstOpen = !await panelState.pageStateManager.hasDefaultSaved();
     console.log('[Magnet保存] 是否首次打开页面:', isFirstOpen);
 
     if (isFirstOpen) {
@@ -132,6 +134,61 @@ export const MagnetPicker: React.FC<MagnetPickerProps> = ({ magnetService, stora
       console.error('解析出错，请重试');
       showToast('解析出错，请重试', 'error');
       isParsingRef.current = false;
+    }
+  };
+
+  // 处理默认保存
+  const handleDefaultSave = async () => {
+    try {
+      console.log('[Magnet保存] 开始处理默认保存');
+      
+      // 确保页面状态已初始化
+      console.log('[Magnet保存] 调用init前pageStateManager:', panelState.pageStateManager);
+      await panelState.pageStateManager.init();
+      console.log('[Magnet保存] 调用init后pageStateManager:', panelState.pageStateManager);
+      
+      // 获取当前页面的所有磁力链接
+      const currentMagnets = Array.from(panelState.magnets.values());
+      console.log('[Magnet保存] 当前页面磁力链接数量:', currentMagnets.length);
+      
+      // 获取已保存的磁力链接
+      const savedStates = await panelState.pageStateManager.getSavedMagnetStates(currentMagnets);
+      console.log('[Magnet保存] 获取已保存状态:', {
+        当前页面磁力链接数: currentMagnets.length,
+        已保存磁力链接数: Array.from(savedStates.values()).filter(v => v).length,
+        当前页面已保存数: Array.from(savedStates.values()).filter(v => v).length
+      });
+      
+      // 检查是否所有磁力链接都未保存
+      const allUnsaved = await panelState.pageStateManager.areAllMagnetsUnsaved(currentMagnets);
+      console.log('[Magnet保存] 是否所有磁力链接都未保存:', allUnsaved);
+      
+      if (!allUnsaved) {
+        console.log('[Magnet保存] 已有部分磁力链接被保存，跳过默认保存');
+        return;
+      }
+      
+      // 使用selectMagnetsByScore选择要保存的磁力链接
+      const magnetsToSave = await magnetService.selectMagnetsToSave(currentMagnets);
+      console.log('[Magnet保存] 将要保存的磁力链接数量:', magnetsToSave.length);
+      
+      // 保存磁力链接
+      for (const magnet of magnetsToSave) {
+        console.log('[Magnet保存] 正在保存:', {
+          fileName: magnet.fileName,
+          hash: magnet.magnet_hash,
+          size: magnet.fileSize
+        });
+        await magnetService.handleToggleSave(magnet, false);
+      }
+      
+      // 标记已执行默认保存
+      console.log('[Magnet保存] 调用setDefaultSaved前pageStateManager:', panelState.pageStateManager);
+      await panelState.pageStateManager.setDefaultSaved();
+      console.log('[Magnet保存] 调用setDefaultSaved后pageStateManager:', panelState.pageStateManager);
+      console.log('[Magnet保存] 首次打开保存完成');
+    } catch (error) {
+      console.error('[Magnet保存] 默认保存失败:', error);
     }
   };
 
