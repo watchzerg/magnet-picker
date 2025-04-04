@@ -34,6 +34,7 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
   const [magnetScores, setMagnetScores] = useState<MagnetScore[]>([]);
   const [sortedMagnets, setSortedMagnets] = useState<MagnetInfo[]>([]);
   const [matchedRules, setMatchedRules] = useState<Map<string, number[]>>(new Map());
+  const [matchedRuleDetails, setMatchedRuleDetails] = useState<Map<string, Map<number, string>>>(new Map());
 
   useEffect(() => {
     const loadScores = async () => {
@@ -48,22 +49,39 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
       });
       setSortedMagnets(sorted);
 
-      // 获取匹配的规则序号
+      // 获取匹配的规则序号和详情
       const result = await chrome.storage.local.get(['magnetRules']);
       const rules: MagnetRule[] = result.magnetRules || [];
       const enabledRules = rules.filter(rule => rule.enabled);
       
       const newMatchedRules = new Map<string, number[]>();
+      const newMatchedDetails = new Map<string, Map<number, string>>();
+
       magnets.forEach(magnet => {
         const matchedRuleNumbers: number[] = [];
+        const ruleDetails = new Map<number, string>();
+
         enabledRules.forEach((rule, index) => {
           if (isRuleMatched(rule, magnet)) {
-            matchedRuleNumbers.push(index + 1);
+            const ruleNumber = index + 1;
+            matchedRuleNumbers.push(ruleNumber);
+            
+            // 生成规则匹配细节
+            if (rule.type === RuleType.FILE_SIZE) {
+              const config = rule.config as FileSizeRuleConfig;
+              const condition = config.condition === 'greater' ? '>' : '<';
+              const detail = `体积[${formatFileSize(magnet.fileSize)}${condition}${formatFileSize(config.threshold)}]=>100%`;
+              ruleDetails.set(ruleNumber, detail);
+            }
           }
         });
+
         newMatchedRules.set(magnet.magnet_hash, matchedRuleNumbers);
+        newMatchedDetails.set(magnet.magnet_hash, ruleDetails);
       });
+
       setMatchedRules(newMatchedRules);
+      setMatchedRuleDetails(newMatchedDetails);
     };
     loadScores();
   }, [magnets]);
@@ -141,6 +159,7 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
                         <div 
                           key={number} 
                           className="magnet-item-rule-number"
+                          title={matchedRuleDetails.get(magnet.magnet_hash)?.get(number)}
                         >
                           {number}
                         </div>

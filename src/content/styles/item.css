@@ -156,11 +156,30 @@
   background-color: rgba(59, 130, 246, 0.1);
   border-radius: 50%;
   transition: all 0.2s ease-in-out;
+  position: relative;
+  cursor: help;
 }
 
 .magnet-item-rule-number:hover {
   background-color: rgba(59, 130, 246, 0.2);
   transform: scale(1.1);
+}
+
+.magnet-item-rule-number:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  background-color: rgba(17, 24, 39, 0.9);
+  color: white;
+  font-size: 12px;
+  font-weight: normal;
+  white-space: nowrap;
+  border-radius: 4px;
+  z-index: 10;
 }
 
 /* 暗色主题适配 */
@@ -176,5 +195,10 @@
 
   .magnet-item-rule-number:hover {
     background-color: rgba(59, 130, 246, 0.3);
+  }
+
+  .magnet-item-rule-number:hover::after {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: rgb(17, 24, 39);
   }
 } 
