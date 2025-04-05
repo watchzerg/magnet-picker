@@ -11,19 +11,10 @@ import {
   FilenameRegexRuleConfig,
   ShareDateRuleConfig
 } from '../types/rule';
-
-interface MagnetScore {
-  magnet: MagnetInfo;
-  defaultScore: number;
-  finalScore: number;
-}
-
-interface MagnetPanelProps {
-  magnets: MagnetInfo[];
-  savedStates: Map<string, boolean>;
-  onClose: () => void;
-  onToggleSave: (magnet: MagnetInfo, isSaved: boolean) => void;
-}
+import { MagnetScore, MagnetPanelProps } from '../types/magnet/magnet';
+import { MagnetHeader } from './magnet/MagnetHeader';
+import { MagnetItem } from './magnet/MagnetItem';
+import { isRuleMatched } from '../utils/magnet/rule-matcher';
 
 export const MagnetPanel: React.FC<MagnetPanelProps> = ({ 
   magnets, 
@@ -178,137 +169,28 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
         e.stopPropagation();
       }}
     >
-      <div className="magnet-panel-header">
-        <h3 className="magnet-panel-title">
-          磁力链接 ({magnets.length})
-        </h3>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          className="magnet-panel-close"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
+      <MagnetHeader count={magnets.length} onClose={onClose} />
       
       <div className="magnet-panel-content">
         {sortedMagnets.map((magnet) => {
           const saved = isMagnetSaved(magnet);
           const score = magnetScores.find(s => s.magnet.magnet_hash === magnet.magnet_hash)?.finalScore || 0;
           const matchedRuleNumbers = matchedRules.get(magnet.magnet_hash) || [];
+          const matchedDetails = matchedRuleDetails.get(magnet.magnet_hash) || new Map();
+          
           return (
-            <div
+            <MagnetItem
               key={magnet.magnet_hash}
-              className={`magnet-item ${saved ? 'saved' : ''}`}
+              magnet={magnet}
+              saved={saved}
+              score={score}
+              matchedRuleNumbers={matchedRuleNumbers}
+              matchedRuleDetails={matchedDetails}
               onClick={() => handleMagnetClick(magnet, saved)}
-            >
-              <div className="magnet-item-title">
-                <a
-                  href={magnet.magnet_link}
-                  className={`magnet-item-download ${saved ? 'magnet-item-download-saved' : ''}`}
-                  onClick={(e) => e.stopPropagation()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {magnet.fileName}
-                </a>
-                <span className={`magnet-item-badge ${saved ? '' : 'magnet-item-badge-unsaved'}`}>
-                  {saved ? '已保存' : '未保存'}
-                </span>
-              </div>
-              
-              <div className="magnet-item-info">
-                <div className="magnet-item-metrics">
-                  <span className="magnet-item-size">大小: {formatFileSize(magnet.fileSize)}</span>
-                  <span className="magnet-item-score">评分: {formatScore(score)}</span>
-                  <span className="magnet-item-date">发布日期: {magnet.date}</span>
-                </div>
-                {matchedRuleNumbers.length > 0 && (
-                  <div className="magnet-item-rules">
-                    <span className="magnet-item-rules-label">匹配规则:</span>
-                    <div className="magnet-item-rules-numbers">
-                      {matchedRuleNumbers.map(number => (
-                        <div 
-                          key={number} 
-                          className="magnet-item-rule-number"
-                          data-tooltip={matchedRuleDetails.get(magnet.magnet_hash)?.get(number)}
-                          dangerouslySetInnerHTML={{
-                            __html: `<span>${number}</span><div class="tooltip-content">${matchedRuleDetails.get(magnet.magnet_hash)?.get(number)}</div>`
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+            />
           );
         })}
       </div>
     </div>
   );
-};
-
-// 判断规则是否匹配
-const isRuleMatched = (rule: MagnetRule, magnet: MagnetInfo): boolean => {
-  const { type, config } = rule;
-  
-  switch (type) {
-    case RuleType.FILE_SIZE: {
-      const fileSizeConfig = config as FileSizeRuleConfig;
-      return fileSizeConfig.condition === 'greater' 
-        ? magnet.fileSize > fileSizeConfig.threshold
-        : magnet.fileSize < fileSizeConfig.threshold;
-    }
-    case RuleType.FILENAME_CONTAINS: {
-      const containsConfig = config as FilenameContainsRuleConfig;
-      return containsConfig.keywords.some(keyword => 
-        magnet.fileName.toLowerCase().includes(keyword.toLowerCase())
-      );
-    }
-    case RuleType.FILENAME_SUFFIX: {
-      const suffixConfig = config as FilenameSuffixRuleConfig;
-      return suffixConfig.suffixes.some(suffix => 
-        magnet.fileName.toLowerCase().endsWith(suffix.toLowerCase())
-      );
-    }
-    case RuleType.FILE_EXTENSION: {
-      const extensionConfig = config as FileExtensionRuleConfig;
-      const fileExt = magnet.fileName.split('.').pop()?.toLowerCase() || '';
-      return extensionConfig.extensions.some(ext => 
-        ext.toLowerCase() === fileExt
-      );
-    }
-    case RuleType.FILENAME_REGEX: {
-      const regexConfig = config as FilenameRegexRuleConfig;
-      try {
-        const regex = new RegExp(regexConfig.pattern);
-        return regex.test(magnet.fileName);
-      } catch {
-        return false;
-      }
-    }
-    case RuleType.SHARE_DATE: {
-      const dateConfig = config as ShareDateRuleConfig;
-      const magnetDate = new Date(magnet.date);
-      const ruleDate = new Date(dateConfig.date);
-      
-      switch (dateConfig.condition) {
-        case 'before':
-          return magnetDate < ruleDate;
-        case 'after':
-          return magnetDate > ruleDate;
-        case 'equal':
-          return magnetDate.toDateString() === ruleDate.toDateString();
-        default:
-          return false;
-      }
-    }
-    default:
-      return false;
-  }
 }; 
