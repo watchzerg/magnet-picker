@@ -1,17 +1,7 @@
 import React, { useState, useEffect } from 'react';
-
-interface RuleSettingsProps {
-    initialSettings: {
-        requiredThreshold: number;
-        preferredThreshold: number;
-        targetCount: number;
-    };
-    onSettingsChange: (settings: {
-        requiredThreshold: number;
-        preferredThreshold: number;
-        targetCount: number;
-    }) => void;
-}
+import { RuleSettingsProps } from '../../../types/rule-settings';
+import ThresholdSelector from './ThresholdSelector';
+import TargetCountSelector from './TargetCountSelector';
 
 // 得分单位
 const SCORE_UNITS = [
@@ -146,107 +136,30 @@ const RuleSettings: React.FC<RuleSettingsProps> = ({ initialSettings, onSettings
     return (
         <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
             <div className="grid grid-cols-3 gap-6">
-                {/* 必选阈值 */}
-                <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                        必选阈值
-                    </label>
-                    <div className="flex gap-2">
-                        <select
-                            value={isCustomRequired ? 'custom' : requiredThreshold}
-                            onChange={(e) => handleRequiredChange(e.target.value)}
-                            className="block w-28 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                        >
-                            {DEFAULT_REQUIRED_OPTIONS.map(option => (
-                                <option key={option.label} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-                        {isCustomRequired && (
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    value={customRequiredValue}
-                                    onChange={(e) => handleCustomValueChange(e.target.value, customRequiredUnit, 'required')}
-                                    className="block w-20 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                />
-                                <select
-                                    value={customRequiredUnit}
-                                    onChange={(e) => handleCustomValueChange(customRequiredValue, e.target.value, 'required')}
-                                    className="block w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                >
-                                    {SCORE_UNITS.map(unit => (
-                                        <option key={unit.value} value={unit.value}>
-                                            {unit.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-                    </div>
-                </div>
+                <ThresholdSelector
+                    type="required"
+                    value={requiredThreshold}
+                    isCustom={isCustomRequired}
+                    customValue={customRequiredValue}
+                    customUnit={customRequiredUnit}
+                    onValueChange={handleRequiredChange}
+                    onCustomValueChange={(value, unit) => handleCustomValueChange(value, unit, 'required')}
+                />
 
-                {/* 优选阈值 */}
-                <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                        优选阈值
-                    </label>
-                    <div className="flex gap-2">
-                        <select
-                            value={isCustomPreferred ? 'custom' : preferredThreshold}
-                            onChange={(e) => handlePreferredChange(e.target.value)}
-                            className="block w-28 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                        >
-                            {DEFAULT_PREFERRED_OPTIONS.map(option => (
-                                <option key={option.label} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-                        {isCustomPreferred && (
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    value={customPreferredValue}
-                                    onChange={(e) => handleCustomValueChange(e.target.value, customPreferredUnit, 'preferred')}
-                                    className="block w-20 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                />
-                                <select
-                                    value={customPreferredUnit}
-                                    onChange={(e) => handleCustomValueChange(customPreferredValue, e.target.value, 'preferred')}
-                                    className="block w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                >
-                                    {SCORE_UNITS.map(unit => (
-                                        <option key={unit.value} value={unit.value}>
-                                            {unit.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-                    </div>
-                </div>
+                <ThresholdSelector
+                    type="preferred"
+                    value={preferredThreshold}
+                    isCustom={isCustomPreferred}
+                    customValue={customPreferredValue}
+                    customUnit={customPreferredUnit}
+                    onValueChange={handlePreferredChange}
+                    onCustomValueChange={(value, unit) => handleCustomValueChange(value, unit, 'preferred')}
+                />
 
-                {/* 目标数量 */}
-                <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                        目标数量
-                    </label>
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 text-center font-medium bg-gray-100 py-1 rounded">
-                            {targetCount}
-                        </div>
-                        <input
-                            type="range"
-                            min="1"
-                            max="10"
-                            value={targetCount}
-                            onChange={(e) => handleTargetCountChange(parseInt(e.target.value))}
-                            className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                        />
-                    </div>
-                </div>
+                <TargetCountSelector
+                    value={targetCount}
+                    onChange={handleTargetCountChange}
+                />
             </div>
         </div>
     );
