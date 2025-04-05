@@ -145,60 +145,139 @@
 }
 
 .magnet-item-rule-number {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 20px;
   height: 20px;
+  margin: 0 2px;
   font-size: 12px;
   font-weight: 500;
-  color: rgb(37, 99, 235);
-  background-color: rgba(59, 130, 246, 0.1);
+  color: #fff;
+  background-color: #4b5563;
   border-radius: 50%;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.15s ease;
+  cursor: pointer;
   position: relative;
-  cursor: help;
 }
 
 .magnet-item-rule-number:hover {
-  background-color: rgba(59, 130, 246, 0.2);
+  background-color: #374151;
   transform: scale(1.1);
 }
 
-.magnet-item-rule-number:hover::after {
-  content: attr(title);
+.magnet-item-rule-number .tooltip-content {
+  visibility: hidden;
+  opacity: 0;
   position: absolute;
-  bottom: 100%;
+  bottom: 125%;
   left: 50%;
   transform: translateX(-50%);
-  margin-bottom: 8px;
-  padding: 4px 8px;
-  background-color: rgba(17, 24, 39, 0.9);
-  color: white;
-  font-size: 12px;
+  padding: 8px 12px;
+  background-color: #ffffff;
+  color: #1f2937;
   font-weight: normal;
-  white-space: nowrap;
-  border-radius: 4px;
-  z-index: 10;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  transition: all 0.15s ease;
+  max-width: 300px;
+  width: max-content;
 }
 
-/* 暗色主题适配 */
-@media (prefers-color-scheme: dark) {
-  .magnet-item-rules-label {
-    color: #9ca3af;
-  }
+.magnet-item-rule-number:hover .tooltip-content {
+  visibility: visible;
+  opacity: 1;
+}
 
+.magnet-item-rule-number .tooltip-content::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #e5e7eb transparent transparent transparent;
+}
+
+.magnet-item-rule-number .tooltip-content::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: #ffffff transparent transparent transparent;
+  margin-top: -1px;
+}
+
+.magnet-item-rule-number .tooltip-content .score-positive {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.magnet-item-rule-number .tooltip-content .score-negative {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.magnet-item-rule-number .tooltip-content .score-neutral {
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.magnet-item-rule-number .tooltip-content .match-value {
+  color: #60a5fa;
+  font-weight: 600;
+  padding: 1px 4px;
+  background-color: rgba(96, 165, 250, 0.1);
+  border-radius: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
   .magnet-item-rule-number {
-    color: rgb(147, 197, 253);
-    background-color: rgba(59, 130, 246, 0.2);
+    background-color: #6b7280;
   }
 
   .magnet-item-rule-number:hover {
-    background-color: rgba(59, 130, 246, 0.3);
+    background-color: #4b5563;
   }
 
-  .magnet-item-rule-number:hover::after {
-    background-color: rgba(255, 255, 255, 0.9);
-    color: rgb(17, 24, 39);
+  .magnet-item-rule-number .tooltip-content {
+    background-color: #1e293b;
+    color: #f1f5f9;
+    border-color: #334155;
+  }
+
+  .magnet-item-rule-number .tooltip-content::before {
+    border-color: #334155 transparent transparent transparent;
+  }
+
+  .magnet-item-rule-number .tooltip-content::after {
+    border-color: #1e293b transparent transparent transparent;
+  }
+
+  .magnet-item-rule-number .tooltip-content .score-positive {
+    color: #34d399;
+  }
+
+  .magnet-item-rule-number .tooltip-content .score-negative {
+    color: #f87171;
+  }
+
+  .magnet-item-rule-number .tooltip-content .score-neutral {
+    color: #d1d5db;
+  }
+
+  .magnet-item-rule-number .tooltip-content .match-value {
+    color: #93c5fd;
+    background-color: rgba(147, 197, 253, 0.15);
+    border: 1px solid rgba(147, 197, 253, 0.2);
   }
 } 

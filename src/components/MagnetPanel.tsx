@@ -70,8 +70,11 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
             switch (rule.type) {
               case RuleType.FILE_SIZE: {
                 const config = rule.config as FileSizeRuleConfig;
-                const condition = config.condition === 'greater' ? '>' : '<';
-                const detail = `体积[${formatFileSize(magnet.fileSize)}${condition}${formatFileSize(config.threshold)}]=>${config.scoreMultiplier * 100}%`;
+                const condition = config.condition === 'greater' ? '大于' : '小于';
+                const scoreChange = Number(((config.scoreMultiplier - 1) * 100).toFixed(0));
+                const scoreText = `<span class="score-${scoreChange > 0 ? 'positive' : scoreChange < 0 ? 'negative' : 'neutral'}">${scoreChange > 0 ? '+' : ''}${scoreChange}%</span>`;
+                const detail = `文件体积${condition} <span class="match-value">${formatFileSize(config.threshold)}</span>
+评分修正：${scoreText}${config.stopOnMatch ? '\n⚡ 匹配后中止后续规则' : ''}`;
                 ruleDetails.set(ruleNumber, detail);
                 break;
               }
@@ -81,7 +84,10 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
                   magnet.fileName.toLowerCase().includes(keyword.toLowerCase())
                 );
                 if (matchedKeyword) {
-                  const detail = `关键字[${matchedKeyword}]=>${config.scoreMultiplier * 100}%`;
+                  const scoreChange = Number(((config.scoreMultiplier - 1) * 100).toFixed(0));
+                  const scoreText = `<span class="score-${scoreChange > 0 ? 'positive' : scoreChange < 0 ? 'negative' : 'neutral'}">${scoreChange > 0 ? '+' : ''}${scoreChange}%</span>`;
+                  const detail = `文件名包含关键字：<span class="match-value">${matchedKeyword}</span>
+评分修正：${scoreText}${config.stopOnMatch ? '\n⚡ 匹配后中止后续规则' : ''}`;
                   ruleDetails.set(ruleNumber, detail);
                 }
                 break;
@@ -92,7 +98,10 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
                   magnet.fileName.toLowerCase().endsWith(suffix.toLowerCase())
                 );
                 if (matchedSuffix) {
-                  const detail = `后缀[${matchedSuffix}]=>${config.scoreMultiplier * 100}%`;
+                  const scoreChange = Number(((config.scoreMultiplier - 1) * 100).toFixed(0));
+                  const scoreText = `<span class="score-${scoreChange > 0 ? 'positive' : scoreChange < 0 ? 'negative' : 'neutral'}">${scoreChange > 0 ? '+' : ''}${scoreChange}%</span>`;
+                  const detail = `文件名以后缀结尾：<span class="match-value">${matchedSuffix}</span>
+评分修正：${scoreText}${config.stopOnMatch ? '\n⚡ 匹配后中止后续规则' : ''}`;
                   ruleDetails.set(ruleNumber, detail);
                 }
                 break;
@@ -104,7 +113,10 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
                   ext.toLowerCase() === fileExt
                 );
                 if (matchedExtension) {
-                  const detail = `扩展名[${matchedExtension}]=>${config.scoreMultiplier * 100}%`;
+                  const scoreChange = Number(((config.scoreMultiplier - 1) * 100).toFixed(0));
+                  const scoreText = `<span class="score-${scoreChange > 0 ? 'positive' : scoreChange < 0 ? 'negative' : 'neutral'}">${scoreChange > 0 ? '+' : ''}${scoreChange}%</span>`;
+                  const detail = `文件扩展名：<span class="match-value">${matchedExtension}</span>
+评分修正：${scoreText}${config.stopOnMatch ? '\n⚡ 匹配后中止后续规则' : ''}`;
                   ruleDetails.set(ruleNumber, detail);
                 }
                 break;
@@ -114,7 +126,10 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
                 try {
                   const regex = new RegExp(config.pattern);
                   if (regex.test(magnet.fileName)) {
-                    const detail = `正则[${config.pattern}]=>${config.scoreMultiplier * 100}%`;
+                    const scoreChange = Number(((config.scoreMultiplier - 1) * 100).toFixed(0));
+                    const scoreText = `<span class="score-${scoreChange > 0 ? 'positive' : scoreChange < 0 ? 'negative' : 'neutral'}">${scoreChange > 0 ? '+' : ''}${scoreChange}%</span>`;
+                    const detail = `文件名匹配正则：<span class="match-value">${config.pattern}</span>
+评分修正：${scoreText}${config.stopOnMatch ? '\n⚡ 匹配后中止后续规则' : ''}`;
                     ruleDetails.set(ruleNumber, detail);
                   }
                 } catch {
@@ -124,21 +139,12 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
               }
               case RuleType.SHARE_DATE: {
                 const config = rule.config as ShareDateRuleConfig;
-                const magnetDate = new Date(magnet.date);
-                const ruleDate = new Date(config.date);
-                let condition = '';
-                switch (config.condition) {
-                  case 'before':
-                    condition = '<';
-                    break;
-                  case 'after':
-                    condition = '>';
-                    break;
-                  case 'equal':
-                    condition = '=';
-                    break;
-                }
-                const detail = `日期[${magnet.date}${condition}${config.date}]=>${config.scoreMultiplier * 100}%`;
+                const condition = config.condition === 'after' ? '晚于' : 
+                                config.condition === 'before' ? '早于' : '等于';
+                const scoreChange = Number(((config.scoreMultiplier - 1) * 100).toFixed(0));
+                const scoreText = `<span class="score-${scoreChange > 0 ? 'positive' : scoreChange < 0 ? 'negative' : 'neutral'}">${scoreChange > 0 ? '+' : ''}${scoreChange}%</span>`;
+                const detail = `分享日期${condition} <span class="match-value">${config.date}</span>
+评分修正：${scoreText}${config.stopOnMatch ? '\n⚡ 匹配后中止后续规则' : ''}`;
                 ruleDetails.set(ruleNumber, detail);
                 break;
               }
@@ -229,10 +235,11 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
                         <div 
                           key={number} 
                           className="magnet-item-rule-number"
-                          title={matchedRuleDetails.get(magnet.magnet_hash)?.get(number)}
-                        >
-                          {number}
-                        </div>
+                          data-tooltip={matchedRuleDetails.get(magnet.magnet_hash)?.get(number)}
+                          dangerouslySetInnerHTML={{
+                            __html: `<span>${number}</span><div class="tooltip-content">${matchedRuleDetails.get(magnet.magnet_hash)?.get(number)}</div>`
+                          }}
+                        />
                       ))}
                     </div>
                   </div>

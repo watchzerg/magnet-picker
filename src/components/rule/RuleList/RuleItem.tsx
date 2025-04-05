@@ -5,6 +5,7 @@ import RuleConfigEditor from '../RuleConfigEditor';
 import { getRuleTypeName } from '../utils/rule-utils';
 import { generateRuleOverview } from '../../../utils/rule/rule-overview';
 import { validateRule } from '../utils/validation';
+import { ArrowRight, ChevronRight } from 'lucide-react';
 
 interface RuleItemProps {
     rule: MagnetRule;
@@ -29,7 +30,7 @@ const RuleItem: React.FC<RuleItemProps> = ({
     onChange,
     ruleNumber
 }) => {
-    const ruleOverview = isValid ? generateRuleOverview(rule) : '';
+    const ruleOverview = isValid ? generateRuleOverview(rule) : null;
     const { message: errorMessage } = validateRule(rule.type, rule.config);
 
     return (
@@ -78,8 +79,20 @@ const RuleItem: React.FC<RuleItemProps> = ({
                             </div>
                             
                             {/* 规则说明 */}
-                            <div className="text-gray-500 flex-1">
-                                {ruleOverview}
+                            <div className="text-gray-500 flex-1 flex items-center">
+                                {ruleOverview && (
+                                    <div className="bg-blue-50 rounded-lg flex items-center overflow-hidden">
+                                        <div className="px-3 py-1.5 font-medium text-blue-700">
+                                            {ruleOverview.condition}
+                                        </div>
+                                        <div className="px-1 text-blue-300">
+                                            <ChevronRight className="w-4 h-4" />
+                                        </div>
+                                        <div className="px-3 py-1.5 font-medium text-green-700 bg-green-50/50">
+                                            {ruleOverview.scoreMultiplier}%
+                                        </div>
+                                    </div>
+                                )}
                                 {!isValid && errorMessage && (
                                     <span className="ml-2 text-red-500 text-sm">
                                         {errorMessage}
