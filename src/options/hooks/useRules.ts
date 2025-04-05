@@ -43,12 +43,23 @@ const validateRuleConfig = (rule: any): rule is MagnetRule => {
 };
 
 export const useRules = () => {
+    console.log('useRules hook初始化');
     const [rules, setRules] = useState<MagnetRule[]>([]);
 
     useEffect(() => {
-        console.log('开始加载规则配置...');
-        chrome.storage.local.get(['magnetRules'], (result) => {
-            console.log('从storage加载的规则:', result);
+        console.log('useRules effect开始执行');
+        let mounted = true;
+
+        const loadRules = async () => {
+            console.log('开始加载规则配置...');
+            const result = await chrome.storage.local.get(['magnetRules']);
+            console.log('从storage加载的原始数据:', result);
+            
+            if (!mounted) {
+                console.log('组件已卸载，取消加载');
+                return;
+            }
+
             if (result.magnetRules && Array.isArray(result.magnetRules)) {
                 console.log('开始验证规则配置...');
                 console.log('规则数组:', result.magnetRules);
@@ -60,16 +71,26 @@ export const useRules = () => {
                 }
                 console.log('设置规则到state:', validRules);
                 setRules(validRules);
+                console.log('规则已设置到state');
             } else {
                 console.log('未找到规则配置或配置无效');
+                setRules([]);
             }
-        });
+        };
+
+        loadRules();
+        
+        return () => {
+            mounted = false;
+            console.log('useRules effect清理');
+        };
     }, []);
 
     const handleRulesChange = (newRules: MagnetRule[]) => {
         console.log('保存新的规则配置:', newRules);
         chrome.storage.local.set({ magnetRules: newRules });
         setRules(newRules);
+        console.log('新规则已保存并更新到state');
     };
 
     return {

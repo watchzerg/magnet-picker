@@ -1,31 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MagnetRule } from '../../types/rule';
 import RuleList from './RuleList';
 
 interface RuleManagerProps {
     initialRules: MagnetRule[];
-    initialSettings: {
-        requiredThreshold: number;
-        preferredThreshold: number;
-        targetCount: number;
-    };
     onRulesChange: (rules: MagnetRule[]) => void;
-    onSettingsChange: (settings: {
-        requiredThreshold: number;
-        preferredThreshold: number;
-        targetCount: number;
-    }) => void;
+    initialSettings: any;
+    onSettingsChange: (settings: any) => void;
 }
 
 const RuleManager: React.FC<RuleManagerProps> = ({
     initialRules,
-    initialSettings,
     onRulesChange,
+    initialSettings,
     onSettingsChange
 }) => {
-    const [rules, setRules] = useState<MagnetRule[]>(initialRules);
+    console.log('RuleManager组件渲染，初始规则:', initialRules);
+    const [rules, setRules] = useState<MagnetRule[]>(initialRules || []);
+
+    useEffect(() => {
+        console.log('RuleManager接收到新的initialRules:', initialRules);
+        if (initialRules) {
+            setRules(initialRules);
+        }
+    }, [initialRules]);
 
     const handleRulesChange = (newRules: MagnetRule[]) => {
+        console.log('规则列表更新:', newRules);
         setRules(newRules);
         onRulesChange(newRules);
     };

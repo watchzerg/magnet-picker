@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MagnetManagementTab } from './MagnetManagementTab';
 import RuleManager from '../../components/rule';
 import { useRules } from '../hooks/useRules';
@@ -8,6 +8,15 @@ export const OptionsTabs: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'management' | 'rules'>('management');
     const { rules, handleRulesChange } = useRules();
     const { settings, handleSettingsChange } = useSettings();
+
+    // 从URL参数中获取初始标签页
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const tabParam = params.get('tab');
+        if (tabParam === 'rules') {
+            setActiveTab('rules');
+        }
+    }, []);
 
     return (
         <div className="container mx-auto px-4 py-8">

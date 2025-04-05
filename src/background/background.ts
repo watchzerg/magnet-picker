@@ -244,19 +244,21 @@ async function initializeDefaultRules() {
     
     if (!result.magnetRules || !Array.isArray(result.magnetRules) || result.magnetRules.length === 0) {
       console.log('正在设置默认规则...');
-      // 确保每个规则都有正确的order字段
       const rulesWithOrder = DEFAULT_RULES.map((rule, index) => ({
         ...rule,
         order: index
       }));
       await chrome.storage.local.set({ magnetRules: rulesWithOrder });
       console.log('默认规则设置完成，规则内容:', rulesWithOrder);
+      return true; // 返回true表示初始化了新的规则
     } else {
       console.log('已存在规则配置，跳过默认规则初始化');
       console.log('现有规则:', result.magnetRules);
+      return false; // 返回false表示使用了现有规则
     }
   } catch (error) {
     console.error('初始化默认规则失败:', error);
+    return false;
   }
 }
 
@@ -265,6 +267,16 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   console.log('扩展安装/更新事件:', details);
   if (details.reason === 'install') {
     console.log('首次安装，开始初始化默认规则...');
-    await initializeDefaultRules();
+    const rulesInitialized = await initializeDefaultRules();
+    
+    // 等待一小段时间确保规则已经保存
+    if (rulesInitialized) {
+      setTimeout(() => {
+        console.log('打开选项页面...');
+        chrome.tabs.create({
+          url: chrome.runtime.getURL('options/options.html?tab=rules')
+        });
+      }, 500);
+    }
   }
 }); 
