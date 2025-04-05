@@ -3,6 +3,7 @@
 import { Message } from '../types';
 import { MagnetInfo } from '../types/magnet';
 import { PageState, SessionState } from '../types';
+import { DEFAULT_RULES } from '../utils/rules';
 
 console.log('Background: 后台脚本已加载');
 
@@ -231,4 +232,39 @@ async function handleCleanupPageStates(maxAge: number, sendResponse: (response: 
     console.error('清理页面状态失败:', error);
     sendResponse({ success: false, error });
   }
-} 
+}
+
+// 初始化默认规则
+async function initializeDefaultRules() {
+  try {
+    console.log('开始初始化默认规则...');
+    const result = await chrome.storage.local.get(['magnetRules']);
+    console.log('当前存储状态:', result);
+    console.log('默认规则配置:', DEFAULT_RULES);
+    
+    if (!result.magnetRules || !Array.isArray(result.magnetRules) || result.magnetRules.length === 0) {
+      console.log('正在设置默认规则...');
+      // 确保每个规则都有正确的order字段
+      const rulesWithOrder = DEFAULT_RULES.map((rule, index) => ({
+        ...rule,
+        order: index
+      }));
+      await chrome.storage.local.set({ magnetRules: rulesWithOrder });
+      console.log('默认规则设置完成，规则内容:', rulesWithOrder);
+    } else {
+      console.log('已存在规则配置，跳过默认规则初始化');
+      console.log('现有规则:', result.magnetRules);
+    }
+  } catch (error) {
+    console.error('初始化默认规则失败:', error);
+  }
+}
+
+// 监听扩展安装事件
+chrome.runtime.onInstalled.addListener(async (details) => {
+  console.log('扩展安装/更新事件:', details);
+  if (details.reason === 'install') {
+    console.log('首次安装，开始初始化默认规则...');
+    await initializeDefaultRules();
+  }
+}); 
