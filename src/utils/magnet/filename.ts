@@ -27,7 +27,6 @@ export const getFileExtension = (fileName: string): string => {
 export const checkFilenameContains = (fileName: string, keywords: string[]): { matched: boolean; matchedKeyword?: string } => {
     const nameWithoutExt = getFileNameWithoutExtension(fileName).toLowerCase();
     const matchedKeyword = keywords.find(keyword => nameWithoutExt.includes(keyword.toLowerCase()));
-    console.log(`[规则匹配] 文件名包含关键字检查 - 文件名: ${nameWithoutExt}, 关键字列表: [${keywords.join(', ')}], 匹配结果: ${!!matchedKeyword}${matchedKeyword ? `, 匹配关键字: ${matchedKeyword}` : ''}`);
     return {
         matched: !!matchedKeyword,
         matchedKeyword
@@ -40,7 +39,6 @@ export const checkFilenameContains = (fileName: string, keywords: string[]): { m
 export const checkFilenameSuffix = (fileName: string, suffixes: string[]): { matched: boolean; matchedSuffix?: string } => {
     const nameWithoutExt = getFileNameWithoutExtension(fileName).toLowerCase();
     const matchedSuffix = suffixes.find(suffix => nameWithoutExt.endsWith(suffix.toLowerCase()));
-    console.log(`[规则匹配] 文件名后缀检查 - 文件名: ${nameWithoutExt}, 后缀列表: [${suffixes.join(', ')}], 匹配结果: ${!!matchedSuffix}${matchedSuffix ? `, 匹配后缀: ${matchedSuffix}` : ''}`);
     return {
         matched: !!matchedSuffix,
         matchedSuffix
@@ -53,7 +51,6 @@ export const checkFilenameSuffix = (fileName: string, suffixes: string[]): { mat
 export const checkFileExtension = (fileName: string, extensions: string[]): { matched: boolean; matchedExtension?: string } => {
     const ext = getFileExtension(fileName).toLowerCase();
     const matchedExtension = ext && extensions.find(extension => ext === extension.toLowerCase());
-    console.log(`[规则匹配] 文件扩展名检查 - 文件名: ${fileName}, 扩展名: ${ext}, 目标扩展名列表: [${extensions.join(', ')}], 匹配结果: ${!!matchedExtension}${matchedExtension ? `, 匹配扩展名: ${matchedExtension}` : ''}`);
     return {
         matched: ext !== '' && !!matchedExtension,
         matchedExtension
@@ -64,7 +61,6 @@ export function checkFilenameRegex(pattern: string, filename: string): { matched
   try {
     const regex = new RegExp(pattern);
     const matches = filename.match(regex);
-    console.log(`[规则匹配] 文件名正则检查 - 文件名: ${filename}, 正则表达式: ${pattern}, 匹配结果: ${matches !== null}${matches ? `, 匹配内容: [${matches.join(', ')}]` : ''}`);
     return {
       matched: matches !== null,
       matches: matches ? matches : []
