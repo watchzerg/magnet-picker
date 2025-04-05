@@ -3,9 +3,11 @@ import { MagnetRule, RuleType } from '../../types/rule';
 import { 
     checkFilenameContains, 
     checkFilenameSuffix, 
-    checkFileExtension 
+    checkFileExtension,
+    checkFilenameRegex
 } from './filename';
 import { checkShareDate } from './date';
+import { formatFileSize } from '../../components/rule/utils/rule-utils';
 
 // 评分相关的常量
 const SCORE_THRESHOLD_10GB = 10 * 1024 * 1024 * 1024;
@@ -18,6 +20,7 @@ interface MagnetScore {
   magnet: MagnetInfo;
   defaultScore: number;
   finalScore: number;
+  matchedRules: Map<number, string>; // 规则序号 -> 匹配细节
 }
 
 interface MagnetSettings {
@@ -40,6 +43,7 @@ export const calculateMagnetScores = async (magnets: MagnetInfo[]): Promise<Magn
     // 初始评分系数为 1.0 score/byte
     let scoreMultiplier = 1.0;
     let shouldStop = false;
+    const matchedRules = new Map<number, string>();
 
     // 依次应用所有规则
     for (const rule of enabledRules) {
@@ -47,6 +51,7 @@ export const calculateMagnetScores = async (magnets: MagnetInfo[]): Promise<Magn
 
       const config = rule.config;
       let matches = false;
+      let matchDetail = '';
 
       // 根据规则类型进行匹配
       switch (config.type) {
@@ -54,23 +59,40 @@ export const calculateMagnetScores = async (magnets: MagnetInfo[]): Promise<Magn
           matches = config.condition === 'greater' 
             ? magnet.fileSize > config.threshold
             : magnet.fileSize < config.threshold;
+          if (matches) {
+            const condition = config.condition === 'greater' ? '>' : '<';
+            matchDetail = `体积[${formatFileSize(magnet.fileSize)}${condition}${formatFileSize(config.threshold)}]=>${config.scoreMultiplier * 100}%`;
+          }
           break;
-        case RuleType.FILENAME_CONTAINS:
-          matches = checkFilenameContains(magnet.fileName, config.keywords);
+        case RuleType.FILENAME_CONTAINS: {
+          const result = checkFilenameContains(magnet.fileName, config.keywords);
+          matches = result.matched;
+          if (matches) {
+            matchDetail = `关键字[${result.matchedKeyword}]=>${config.scoreMultiplier * 100}%`;
+          }
           break;
-        case RuleType.FILENAME_SUFFIX:
-          matches = checkFilenameSuffix(magnet.fileName, config.suffixes);
+        }
+        case RuleType.FILENAME_SUFFIX: {
+          const result = checkFilenameSuffix(magnet.fileName, config.suffixes);
+          matches = result.matched;
+          if (matches) {
+            matchDetail = `后缀[${result.matchedSuffix}]=>${config.scoreMultiplier * 100}%`;
+          }
           break;
-        case RuleType.FILE_EXTENSION:
-          matches = checkFileExtension(magnet.fileName, config.extensions);
+        }
+        case RuleType.FILE_EXTENSION: {
+          const result = checkFileExtension(magnet.fileName, config.extensions);
+          matches = result.matched;
+          if (matches) {
+            matchDetail = `扩展名[${result.matchedExtension}]=>${config.scoreMultiplier * 100}%`;
+          }
           break;
+        }
         case RuleType.FILENAME_REGEX:
-          try {
-            const regex = new RegExp(config.pattern);
-            matches = regex.test(magnet.fileName);
-          } catch (e) {
-            console.error('Invalid regex pattern:', config.pattern);
-            matches = false;
+          const regexMatches = checkFilenameRegex(config.pattern, magnet.fileName);
+          matches = regexMatches.matched;
+          if (matches) {
+            matchDetail = `正则[${config.pattern}]=>${(config.scoreMultiplier * 100).toFixed(0)}%`;
           }
           break;
         case RuleType.SHARE_DATE:
@@ -78,9 +100,12 @@ export const calculateMagnetScores = async (magnets: MagnetInfo[]): Promise<Magn
           break;
       }
 
-      // 如果匹配成功，应用得分系数
+      // 如果匹配成功，应用得分系数并记录匹配细节
       if (matches) {
         scoreMultiplier *= config.scoreMultiplier;
+        if (matchDetail) {
+          matchedRules.set(rule.order, matchDetail);
+        }
         shouldStop = config.stopOnMatch;
       }
     }
@@ -89,7 +114,7 @@ export const calculateMagnetScores = async (magnets: MagnetInfo[]): Promise<Magn
     const defaultScore = magnet.fileSize;
     const finalScore = defaultScore * scoreMultiplier;
 
-    return { magnet, defaultScore, finalScore };
+    return { magnet, defaultScore, finalScore, matchedRules };
   });
 };
 
