@@ -6,6 +6,7 @@ import RuleItem from './RuleItem';
 import RuleActions from './RuleActions';
 import RuleDescription from './RuleDescription';
 import RuleSettings from './RuleSettings';
+import { DEFAULT_RULES } from '../../../utils/rules';
 
 interface RuleListProps {
     rules: MagnetRule[];
@@ -226,8 +227,27 @@ const RuleList: React.FC<RuleListProps> = ({ rules, initialSettings, onChange, o
         onChange(newRules);
     };
 
+    const handleResetToDefault = () => {
+        if (window.confirm('确定要重置为默认规则吗？这将清空所有现有规则。')) {
+            const defaultRulesWithOrder = DEFAULT_RULES.map((rule, index) => ({
+                ...rule,
+                order: index
+            }));
+            onChange(defaultRulesWithOrder);
+        }
+    };
+
     return (
         <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">规则配置</h2>
+                <button
+                    onClick={handleResetToDefault}
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                >
+                    重置为默认规则
+                </button>
+            </div>
             <RuleDescription />
             
             <RuleSettings
