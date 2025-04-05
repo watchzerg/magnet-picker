@@ -1,5 +1,10 @@
 import { MagnetInfo } from '../../types/magnet';
 import { MagnetRule, RuleType } from '../../types/rule';
+import { 
+    checkFilenameContains, 
+    checkFilenameSuffix, 
+    checkFileExtension 
+} from './filename';
 
 // 评分相关的常量
 const SCORE_THRESHOLD_10GB = 10 * 1024 * 1024 * 1024;
@@ -25,26 +30,45 @@ export const calculateMagnetScores = async (magnets: MagnetInfo[]): Promise<Magn
   const result = await chrome.storage.local.get(['magnetRules']);
   const rules: MagnetRule[] = result.magnetRules || [];
   
-  // 只获取启用的文件大小规则，并按order排序
-  const fileSizeRules = rules
-    .filter(rule => rule.enabled && rule.type === RuleType.FILE_SIZE)
+  // 获取所有启用的规则，并按order排序
+  const enabledRules = rules
+    .filter(rule => rule.enabled)
     .sort((a, b) => a.order - b.order);
 
   return magnets.map(magnet => {
     // 初始评分系数为 1.0 score/byte
     let scoreMultiplier = 1.0;
+    let shouldStop = false;
 
-    // 应用文件大小规则
-    for (const rule of fileSizeRules) {
+    // 依次应用所有规则
+    for (const rule of enabledRules) {
+      if (shouldStop) break;
+
       const config = rule.config;
-      if (config.type === RuleType.FILE_SIZE) {
-        const matches = config.condition === 'greater' 
-          ? magnet.fileSize > config.threshold
-          : magnet.fileSize < config.threshold;
-        
-        if (matches) {
-          scoreMultiplier *= config.scoreMultiplier;
-        }
+      let matches = false;
+
+      // 根据规则类型进行匹配
+      switch (config.type) {
+        case RuleType.FILE_SIZE:
+          matches = config.condition === 'greater' 
+            ? magnet.fileSize > config.threshold
+            : magnet.fileSize < config.threshold;
+          break;
+        case RuleType.FILENAME_CONTAINS:
+          matches = checkFilenameContains(magnet.fileName, config.keywords);
+          break;
+        case RuleType.FILENAME_SUFFIX:
+          matches = checkFilenameSuffix(magnet.fileName, config.suffixes);
+          break;
+        case RuleType.FILE_EXTENSION:
+          matches = checkFileExtension(magnet.fileName, config.extensions);
+          break;
+      }
+
+      // 如果匹配成功，应用得分系数
+      if (matches) {
+        scoreMultiplier *= config.scoreMultiplier;
+        shouldStop = config.stopOnMatch;
       }
     }
 
