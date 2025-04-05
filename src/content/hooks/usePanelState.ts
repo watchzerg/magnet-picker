@@ -27,7 +27,7 @@ export const usePanelState = () => {
     console.log('[Magnet Panel] 当前保存状态:', Object.fromEntries(savedStates));
 
     // 如果面板容器已存在，直接更新内容
-    if (panelContainerRef.current) {
+    if (panelContainerRef.current && rootRef.current) {
       const panelProps = {
         magnets: newMagnets,
         savedStates,
@@ -35,11 +35,10 @@ export const usePanelState = () => {
         onToggleSave: handleToggleSave
       };
       
-      if (rootRef.current) {
-        rootRef.current.render(React.createElement(MagnetPanel, panelProps));
-        console.log('[Magnet Panel] 面板内容更新完成');
-        return;
-      }
+      rootRef.current.render(React.createElement(MagnetPanel, panelProps));
+      panelContainerRef.current.style.display = 'block';
+      console.log('[Magnet Panel] 面板内容更新完成');
+      return;
     }
 
     // 创建新的面板容器
@@ -82,10 +81,8 @@ export const usePanelState = () => {
     
     // 清理面板容器
     if (panelContainerRef.current) {
-      panelContainerRef.current.remove();
-      panelContainerRef.current = null;
+      panelContainerRef.current.style.display = 'none';
     }
-    rootRef.current = null;
   };
 
   const handleToggleSave = useCallback(async (magnet: MagnetInfo, isSaved: boolean) => {

@@ -60,6 +60,8 @@ export const MagnetPicker: React.FC<MagnetPickerProps> = ({ magnetService, stora
   }, []);
 
   const handleMagnetsUpdate = async (magnets: MagnetInfo[]) => {
+    if (magnets.length === 0) return;
+    
     setCurrentMagnets(magnets);
     await panelState.showPanel(magnets);
 
@@ -106,8 +108,11 @@ export const MagnetPicker: React.FC<MagnetPickerProps> = ({ magnetService, stora
 
   const parseMagnets = async () => {
     try {
+      if (isParsingRef.current) return;
+      
       isParsingRef.current = true;
       await magnetParser.parseMagnets();
+      isParsingRef.current = false;
     } catch (error) {
       console.error('解析出错，请重试');
       showToast('解析出错，请重试', 'error');

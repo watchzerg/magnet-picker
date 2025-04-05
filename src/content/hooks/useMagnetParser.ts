@@ -13,6 +13,8 @@ export const useMagnetParser = (magnetService: MagnetService, storageService: St
    * 解析磁力链接
    */
   const parseMagnets = useCallback(async (): Promise<void> => {
+    if (isLoading) return;
+    
     setIsLoading(true);
     try {
       const parsedMagnets = await magnetService.findMagnets();
@@ -46,7 +48,7 @@ export const useMagnetParser = (magnetService: MagnetService, storageService: St
     } finally {
       setIsLoading(false);
     }
-  }, [magnetService, storageService, setMagnets, setSavedStates]);
+  }, [magnetService, storageService, setMagnets, setSavedStates, isLoading]);
 
   /**
    * 处理磁力链接的保存/取消保存
