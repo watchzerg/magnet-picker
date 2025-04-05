@@ -5,6 +5,7 @@ import {
     checkFilenameSuffix, 
     checkFileExtension 
 } from './filename';
+import { checkShareDate } from './date';
 
 // 评分相关的常量
 const SCORE_THRESHOLD_10GB = 10 * 1024 * 1024 * 1024;
@@ -62,6 +63,18 @@ export const calculateMagnetScores = async (magnets: MagnetInfo[]): Promise<Magn
           break;
         case RuleType.FILE_EXTENSION:
           matches = checkFileExtension(magnet.fileName, config.extensions);
+          break;
+        case RuleType.FILENAME_REGEX:
+          try {
+            const regex = new RegExp(config.pattern);
+            matches = regex.test(magnet.fileName);
+          } catch (e) {
+            console.error('Invalid regex pattern:', config.pattern);
+            matches = false;
+          }
+          break;
+        case RuleType.SHARE_DATE:
+          matches = checkShareDate(magnet.date, config);
           break;
       }
 
