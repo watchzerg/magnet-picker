@@ -4,6 +4,7 @@ import { MagnetRule } from '../../../types/rule';
 import RuleConfigEditor from '../RuleConfigEditor';
 import { getRuleTypeName } from '../utils/rule-utils';
 import { generateRuleOverview } from '../../../utils/rule/rule-overview';
+import { validateRule } from '../utils/validation';
 
 interface RuleItemProps {
     rule: MagnetRule;
@@ -29,6 +30,7 @@ const RuleItem: React.FC<RuleItemProps> = ({
     ruleNumber
 }) => {
     const ruleOverview = isValid ? generateRuleOverview(rule) : '';
+    const { message: errorMessage } = validateRule(rule.type, rule.config);
 
     return (
         <Draggable
@@ -78,9 +80,9 @@ const RuleItem: React.FC<RuleItemProps> = ({
                             {/* 规则说明 */}
                             <div className="text-gray-500 flex-1">
                                 {ruleOverview}
-                                {!isValid && (
+                                {!isValid && errorMessage && (
                                     <span className="ml-2 text-red-500 text-sm">
-                                        规则配置无效
+                                        {errorMessage}
                                     </span>
                                 )}
                             </div>

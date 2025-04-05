@@ -40,7 +40,7 @@ const RuleList: React.FC<RuleListProps> = ({ rules, initialSettings, onChange, o
             }
         });
         setValidationResults(newValidationResults);
-    }, []);
+    }, [rules]);
 
     // 计算规则序号
     useEffect(() => {
