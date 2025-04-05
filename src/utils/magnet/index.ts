@@ -5,6 +5,7 @@ export * from './scoring';
 export * from './storage';
 export * from './filename';
 export * from './date';
+export * from './rule-matcher';
 
 /**
  * 格式化评分为人类可读的格式

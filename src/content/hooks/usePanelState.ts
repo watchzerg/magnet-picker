@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { createRoot, Root as ReactDOMRoot } from 'react-dom/client';
 import { MagnetInfo } from '../../types/magnet';
-import { MagnetPanel } from '../../components/MagnetPanel';
+import { MagnetPanel } from '../../components/magnet/MagnetPanel';
 import { createPanelContainer } from '../utils/dom';
 import { PageStateManager } from '../../utils/pageStateManager';
 import { sortMagnetsByScore } from '../../utils/magnet';

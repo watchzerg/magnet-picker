@@ -1,5 +1,5 @@
 import React from 'react';
-import { MagnetPanel } from '../../components/MagnetPanel';
+import { MagnetPanel } from '../../components/magnet/MagnetPanel';
 import { MagnetInfo } from '../../types/magnet';
 
 interface PanelContainerProps {

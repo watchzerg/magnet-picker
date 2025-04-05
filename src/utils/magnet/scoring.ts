@@ -16,7 +16,7 @@ const MIN_MAGNETS_FIRST = 3;
 const MIN_MAGNETS_SECOND = 5;
 const MIN_MAGNETS_FINAL = 3;
 
-interface MagnetScore {
+export interface MagnetScore {
   magnet: MagnetInfo;
   defaultScore: number;
   finalScore: number;
