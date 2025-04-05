@@ -1,0 +1,27 @@
+:root {
+  /* 颜色变量 */
+  --color-primary: rgb(59, 130, 246);
+  --color-success: rgb(34, 197, 94);
+  --color-gray: rgb(107, 114, 128);
+  --color-text: #1f2937;
+  --color-border: rgba(229, 231, 235, 1);
+  
+  /* 尺寸变量 */
+  --spacing-xs: 2px;
+  --spacing-sm: 4px;
+  --spacing-md: 8px;
+  --spacing-lg: 16px;
+  
+  /* 字体变量 */
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  
+  /* 圆角变量 */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  
+  /* 动画变量 */
+  --transition-base: all 0.2s ease-in-out;
+  --transition-hover: all 0.15s ease;
+} 

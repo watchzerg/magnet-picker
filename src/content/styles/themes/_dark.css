@@ -1,0 +1,94 @@
+@media (prefers-color-scheme: dark) {
+  /* 面板样式 */
+  .magnet-panel {
+    background-color: #1f2937;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  }
+
+  .magnet-panel-header {
+    border-bottom-color: #374151;
+  }
+
+  .magnet-panel-title {
+    color: #f3f4f6;
+  }
+
+  .magnet-panel-close {
+    color: #9ca3af;
+  }
+
+  .magnet-panel-close:hover {
+    color: #d1d5db;
+    background-color: #374151;
+  }
+
+  /* 磁力链接项样式 */
+  .magnet-item {
+    background-color: rgba(31, 41, 55, 0.5);
+    border-color: rgba(75, 85, 99, 0.5);
+  }
+
+  .magnet-item-title {
+    color: #f3f4f6;
+  }
+
+  .magnet-item-info {
+    color: #9ca3af;
+  }
+
+  .magnet-item-size,
+  .magnet-item-score,
+  .magnet-item-date {
+    background-color: rgba(107, 114, 128, 0.2);
+    color: #e5e7eb;
+  }
+
+  .magnet-item-score {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: rgb(147, 197, 253);
+  }
+
+  .magnet-item-rules-label {
+    color: #9ca3af;
+  }
+
+  .magnet-item-rule-number {
+    background-color: #6b7280;
+  }
+
+  .magnet-item-rule-number:hover {
+    background-color: #4b5563;
+  }
+
+  .magnet-item-rule-number .tooltip-content {
+    background-color: #1e293b;
+    color: #f1f5f9;
+    border-color: #334155;
+  }
+
+  .magnet-item-rule-number .tooltip-content::before {
+    border-color: #334155 transparent transparent transparent;
+  }
+
+  .magnet-item-rule-number .tooltip-content::after {
+    border-color: #1e293b transparent transparent transparent;
+  }
+
+  .magnet-item-rule-number .tooltip-content .score-positive {
+    color: #34d399;
+  }
+
+  .magnet-item-rule-number .tooltip-content .score-negative {
+    color: #f87171;
+  }
+
+  .magnet-item-rule-number .tooltip-content .score-neutral {
+    color: #d1d5db;
+  }
+
+  .magnet-item-rule-number .tooltip-content .match-value {
+    color: #93c5fd;
+    background-color: rgba(147, 197, 253, 0.15);
+    border: 1px solid rgba(147, 197, 253, 0.2);
+  }
+} 

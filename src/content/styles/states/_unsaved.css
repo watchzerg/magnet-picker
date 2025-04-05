@@ -1,0 +1,10 @@
+.magnet-item-unsaved {
+  background-color: rgba(243, 244, 246, 1);
+  border: 1px solid rgba(229, 231, 235, 1);
+}
+
+.magnet-item-unsaved:hover {
+  background-color: rgba(243, 244, 246, 0.8);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+} 

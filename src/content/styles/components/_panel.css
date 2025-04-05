@@ -1,0 +1,21 @@
+.magnet-panel {
+  background-color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.magnet-panel-header {
+  border-bottom-color: #e5e7eb;
+}
+
+.magnet-panel-title {
+  color: #1f2937;
+}
+
+.magnet-panel-close {
+  color: #6b7280;
+}
+
+.magnet-panel-close:hover {
+  color: #374151;
+  background-color: #f3f4f6;
+} 
