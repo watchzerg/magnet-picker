@@ -28,7 +28,6 @@ export class MagnetService {
         // 从第一个单元格中获取磁力链接
         const firstCell = cells[0];
         const magnetLink = firstCell.querySelector('a[href^="magnet:"]');
-        const hdTag = firstCell.querySelector('.btn-primary.disabled');
         
         if (magnetLink) {
           const magnetUrl = magnetLink.getAttribute('href') || '';
@@ -37,7 +36,7 @@ export class MagnetService {
           
           const magnetInfo: MagnetInfo = {
             magnet_link: magnetUrl,
-            fileName: `${magnetLink.textContent?.trim() || ''}${hdTag ? ' [HD]' : ''}`,
+            fileName: magnetLink.textContent?.trim() || '',
             fileSize: parseFileSize(cells[1].textContent?.trim() || '0'),
             date: cells[2].textContent?.trim() || '',
             magnet_hash: hash,

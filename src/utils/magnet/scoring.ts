@@ -39,7 +39,11 @@ export const calculateMagnetScores = async (magnets: MagnetInfo[]): Promise<Magn
     .filter(rule => rule.enabled)
     .sort((a, b) => a.order - b.order);
 
+  console.log(`[得分计算] 开始计算磁力链接得分 - 总数: ${magnets.length}, 启用规则数: ${enabledRules.length}`);
+
   return magnets.map(magnet => {
+    console.log(`\n[得分计算] 处理磁力链接 - 文件名: ${magnet.fileName}, 大小: ${formatFileSize(magnet.fileSize)}`);
+    
     // 初始评分系数为 1.0 score/byte
     let scoreMultiplier = 1.0;
     let shouldStop = false;
@@ -47,7 +51,12 @@ export const calculateMagnetScores = async (magnets: MagnetInfo[]): Promise<Magn
 
     // 依次应用所有规则
     for (const rule of enabledRules) {
-      if (shouldStop) break;
+      if (shouldStop) {
+        console.log(`[得分计算] 由于上一个规则设置了stopOnMatch，停止后续规则匹配`);
+        break;
+      }
+
+      console.log(`\n[得分计算] 应用规则 #${rule.order} - 类型: ${rule.type}`);
 
       const config = rule.config;
       let matches = false;
@@ -55,7 +64,7 @@ export const calculateMagnetScores = async (magnets: MagnetInfo[]): Promise<Magn
 
       // 根据规则类型进行匹配
       switch (config.type) {
-        case RuleType.FILE_SIZE:
+        case RuleType.FILE_SIZE: {
           matches = config.condition === 'greater' 
             ? magnet.fileSize > config.threshold
             : magnet.fileSize < config.threshold;
@@ -63,7 +72,9 @@ export const calculateMagnetScores = async (magnets: MagnetInfo[]): Promise<Magn
             const condition = config.condition === 'greater' ? '>' : '<';
             matchDetail = `体积[${formatFileSize(magnet.fileSize)}${condition}${formatFileSize(config.threshold)}]=>${config.scoreMultiplier * 100}%`;
           }
+          console.log(`[得分计算] 文件大小规则 - 条件: ${config.condition}, 阈值: ${formatFileSize(config.threshold)}, 匹配结果: ${matches}`);
           break;
+        }
         case RuleType.FILENAME_CONTAINS: {
           const result = checkFilenameContains(magnet.fileName, config.keywords);
           matches = result.matched;
@@ -88,31 +99,43 @@ export const calculateMagnetScores = async (magnets: MagnetInfo[]): Promise<Magn
           }
           break;
         }
-        case RuleType.FILENAME_REGEX:
+        case RuleType.FILENAME_REGEX: {
           const regexMatches = checkFilenameRegex(config.pattern, magnet.fileName);
           matches = regexMatches.matched;
           if (matches) {
             matchDetail = `正则[${config.pattern}]=>${(config.scoreMultiplier * 100).toFixed(0)}%`;
           }
           break;
-        case RuleType.SHARE_DATE:
+        }
+        case RuleType.SHARE_DATE: {
           matches = checkShareDate(magnet.date, config);
+          console.log(`[得分计算] 分享日期规则 - 条件: ${config.condition}, 日期: ${config.date}, 匹配结果: ${matches}`);
           break;
+        }
       }
 
       // 如果匹配成功，应用得分系数并记录匹配细节
       if (matches) {
+        const oldScoreMultiplier = scoreMultiplier;
         scoreMultiplier *= config.scoreMultiplier;
+        console.log(`[得分计算] 规则匹配成功 - 得分系数: ${oldScoreMultiplier} * ${config.scoreMultiplier} = ${scoreMultiplier}`);
         if (matchDetail) {
           matchedRules.set(rule.order, matchDetail);
+          console.log(`[得分计算] 记录匹配细节: ${matchDetail}`);
         }
         shouldStop = config.stopOnMatch;
+        if (shouldStop) {
+          console.log(`[得分计算] 规则设置了stopOnMatch，将在下一轮停止匹配`);
+        }
+      } else {
+        console.log(`[得分计算] 规则匹配失败 - 保持当前得分系数: ${scoreMultiplier}`);
       }
     }
 
     // 计算最终得分
     const defaultScore = magnet.fileSize;
     const finalScore = defaultScore * scoreMultiplier;
+    console.log(`[得分计算] 计算最终得分 - 基础得分(文件大小): ${formatFileSize(defaultScore)}, 得分系数: ${scoreMultiplier}, 最终得分: ${formatFileSize(finalScore)}`);
 
     return { magnet, defaultScore, finalScore, matchedRules };
   });
@@ -127,6 +150,9 @@ export const selectMagnetsByScore = async (magnets: MagnetInfo[]): Promise<Magne
     targetCount: 5 // 默认5个
   };
   
+  console.log(`[磁力选择] 开始选择磁力链接 - 总数: ${magnets.length}, 目标数量: ${settings.targetCount}`);
+  console.log(`[磁力选择] 阈值设置 - 必选: ${formatFileSize(settings.requiredThreshold)}, 优选: ${formatFileSize(settings.preferredThreshold)}`);
+  
   const scoredMagnets = await calculateMagnetScores(magnets);
   
   // 按最终评分从大到小排序
@@ -137,7 +163,10 @@ export const selectMagnetsByScore = async (magnets: MagnetInfo[]): Promise<Magne
     .filter(item => item.finalScore > settings.requiredThreshold)
     .map(item => item.magnet);
   
+  console.log(`[磁力选择] 第一级筛选(必选阈值) - 通过数量: ${firstLevelMagnets.length}`);
+  
   if (firstLevelMagnets.length >= settings.targetCount) {
+    console.log(`[磁力选择] 第一级筛选已满足目标数量，返回结果`);
     return firstLevelMagnets.slice(0, settings.targetCount);
   }
   
@@ -150,9 +179,12 @@ export const selectMagnetsByScore = async (magnets: MagnetInfo[]): Promise<Magne
     .filter(item => item.finalScore > settings.preferredThreshold)
     .map(item => item.magnet);
   
+  console.log(`[磁力选择] 第二级筛选(优选阈值) - 通过数量: ${secondLevelMagnets.length}`);
+  
   const combinedSecondLevel = [...firstLevelMagnets, ...secondLevelMagnets];
   
   if (combinedSecondLevel.length >= settings.targetCount) {
+    console.log(`[磁力选择] 第二级筛选已满足目标数量，返回结果`);
     return combinedSecondLevel.slice(0, settings.targetCount);
   }
   
@@ -161,7 +193,11 @@ export const selectMagnetsByScore = async (magnets: MagnetInfo[]): Promise<Magne
     .filter(item => item.finalScore <= settings.preferredThreshold)
     .map(item => item.magnet);
   
-  return [...combinedSecondLevel, ...finalRemainingMagnets].slice(0, settings.targetCount);
+  console.log(`[磁力选择] 第三级筛选(剩余按体积) - 可用数量: ${finalRemainingMagnets.length}`);
+  const finalResult = [...combinedSecondLevel, ...finalRemainingMagnets].slice(0, settings.targetCount);
+  console.log(`[磁力选择] 最终选择完成 - 结果数量: ${finalResult.length}`);
+  
+  return finalResult;
 };
 
 export const sortMagnetsByScore = async (magnets: MagnetInfo[]): Promise<MagnetInfo[]> => {

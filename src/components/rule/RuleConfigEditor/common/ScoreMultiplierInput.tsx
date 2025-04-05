@@ -2,14 +2,19 @@ import React, { useState, useEffect } from 'react';
 
 // 得分系数预设选项
 export const SCORE_MULTIPLIER_OPTIONS = [
+    { value: 2.0, label: '200%' },
     { value: 1.5, label: '150%' },
     { value: 1.2, label: '120%' },
     { value: 1.0, label: '100%' },
     { value: 0.8, label: '80%' },
     { value: 0.5, label: '50%' },
+    { value: 0.2, label: '20%' },
     { value: 0, label: '0%' },
     { value: 'custom', label: '自定义' }
-];
+] as const;
+
+// 预设选项的值类型（不包括'custom'）
+type PresetValue = Exclude<typeof SCORE_MULTIPLIER_OPTIONS[number]['value'], 'custom'>;
 
 interface ScoreMultiplierInputProps {
     value: number;
@@ -34,18 +39,47 @@ const ScoreMultiplierInput: React.FC<ScoreMultiplierInputProps> = ({ value, onCh
     const handleScoreMultiplierChange = (value: string | number) => {
         if (value === 'custom') {
             setIsCustomScoreMultiplier(true);
+            setCustomScoreMultiplier('');
             return;
         }
 
         setIsCustomScoreMultiplier(false);
-        onChange(typeof value === 'string' ? parseFloat(value) : value);
+        onChange(Number(value));
     };
 
     const handleCustomScoreMultiplierChange = (input: string) => {
+        // 只允许输入数字
         const value = input.replace(/[^\d]/g, '');
-        if (value === '' || parseInt(value) <= 0) return;
         setCustomScoreMultiplier(value);
-        onChange(parseInt(value) / 100);
+    };
+
+    const handleCustomScoreMultiplierConfirm = () => {
+        if (!customScoreMultiplier || parseInt(customScoreMultiplier) <= 0) {
+            // 如果输入无效，重置为当前值
+            setCustomScoreMultiplier(String(Math.round(value * 100)));
+            return;
+        }
+
+        const numericValue = parseInt(customScoreMultiplier) / 100;
+        
+        // 检查是否匹配预设选项
+        const matchedOption = SCORE_MULTIPLIER_OPTIONS.find(
+            option => option.value !== 'custom' && option.value === numericValue
+        );
+
+        if (matchedOption) {
+            setIsCustomScoreMultiplier(false);
+            onChange(matchedOption.value as number);
+        } else {
+            onChange(numericValue);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleCustomScoreMultiplierConfirm();
+        }
     };
 
     return (
@@ -70,8 +104,10 @@ const ScoreMultiplierInput: React.FC<ScoreMultiplierInputProps> = ({ value, onCh
                         type="text"
                         value={customScoreMultiplier}
                         onChange={(e) => handleCustomScoreMultiplierChange(e.target.value)}
+                        onBlur={handleCustomScoreMultiplierConfirm}
+                        onKeyDown={handleKeyDown}
                         className="w-20 px-2 py-1 text-sm border rounded"
-                        placeholder="输入百分比"
+                        placeholder="输入数字"
                     />
                 )}
             </div>

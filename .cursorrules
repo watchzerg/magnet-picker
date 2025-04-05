@@ -9,7 +9,7 @@ magnet-picker/
 ├── src/                    # 源代码目录
 │   ├── assets/            # 静态资源文件（图片、字体等）
 │   ├── background/        # 扩展的后台脚本
-│   ├── components/        # 可复用的UI组件
+│   ├── components/        # 可复用的React组件
 │   ├── content/          # 注入到页面的内容脚本
 │   ├── options/          # 扩展选项页面
 │   ├── popup/            # 扩展弹出窗口

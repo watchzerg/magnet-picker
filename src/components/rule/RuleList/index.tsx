@@ -183,16 +183,24 @@ const RuleList: React.FC<RuleListProps> = ({ rules, initialSettings, onChange, o
 
         const newRules = [...rules];
         const rule = newRules[ruleIndex];
-        newRules[ruleIndex] = {
-            ...rule,
-            config
-        };
 
+        // 获取当前规则的有效性状态
+        const wasValid = validationResults.get(ruleId);
+        
         // 校验更新后的规则
         const { isValid } = validateRule(rule.type, config);
         const newValidationResults = new Map(validationResults);
         newValidationResults.set(rule.id, isValid);
         setValidationResults(newValidationResults);
+
+        // 如果规则从无效变为有效，自动启用
+        const shouldEnable = !wasValid && isValid;
+
+        newRules[ruleIndex] = {
+            ...rule,
+            config,
+            enabled: shouldEnable ? true : rule.enabled
+        };
 
         onChange(newRules);
     };

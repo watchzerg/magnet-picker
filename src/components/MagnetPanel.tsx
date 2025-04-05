@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { MagnetInfo } from '../types/magnet';
-import { formatFileSize, calculateMagnetScores } from '../utils/magnet';
+import { formatFileSize, calculateMagnetScores, formatScore } from '../utils/magnet';
 import { 
   MagnetRule, 
   RuleType,
@@ -67,11 +67,81 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
             matchedRuleNumbers.push(ruleNumber);
             
             // 生成规则匹配细节
-            if (rule.type === RuleType.FILE_SIZE) {
-              const config = rule.config as FileSizeRuleConfig;
-              const condition = config.condition === 'greater' ? '>' : '<';
-              const detail = `体积[${formatFileSize(magnet.fileSize)}${condition}${formatFileSize(config.threshold)}]=>100%`;
-              ruleDetails.set(ruleNumber, detail);
+            switch (rule.type) {
+              case RuleType.FILE_SIZE: {
+                const config = rule.config as FileSizeRuleConfig;
+                const condition = config.condition === 'greater' ? '>' : '<';
+                const detail = `体积[${formatFileSize(magnet.fileSize)}${condition}${formatFileSize(config.threshold)}]=>${config.scoreMultiplier * 100}%`;
+                ruleDetails.set(ruleNumber, detail);
+                break;
+              }
+              case RuleType.FILENAME_CONTAINS: {
+                const config = rule.config as FilenameContainsRuleConfig;
+                const matchedKeyword = config.keywords.find(keyword => 
+                  magnet.fileName.toLowerCase().includes(keyword.toLowerCase())
+                );
+                if (matchedKeyword) {
+                  const detail = `关键字[${matchedKeyword}]=>${config.scoreMultiplier * 100}%`;
+                  ruleDetails.set(ruleNumber, detail);
+                }
+                break;
+              }
+              case RuleType.FILENAME_SUFFIX: {
+                const config = rule.config as FilenameSuffixRuleConfig;
+                const matchedSuffix = config.suffixes.find(suffix => 
+                  magnet.fileName.toLowerCase().endsWith(suffix.toLowerCase())
+                );
+                if (matchedSuffix) {
+                  const detail = `后缀[${matchedSuffix}]=>${config.scoreMultiplier * 100}%`;
+                  ruleDetails.set(ruleNumber, detail);
+                }
+                break;
+              }
+              case RuleType.FILE_EXTENSION: {
+                const config = rule.config as FileExtensionRuleConfig;
+                const fileExt = magnet.fileName.split('.').pop()?.toLowerCase() || '';
+                const matchedExtension = config.extensions.find(ext => 
+                  ext.toLowerCase() === fileExt
+                );
+                if (matchedExtension) {
+                  const detail = `扩展名[${matchedExtension}]=>${config.scoreMultiplier * 100}%`;
+                  ruleDetails.set(ruleNumber, detail);
+                }
+                break;
+              }
+              case RuleType.FILENAME_REGEX: {
+                const config = rule.config as FilenameRegexRuleConfig;
+                try {
+                  const regex = new RegExp(config.pattern);
+                  if (regex.test(magnet.fileName)) {
+                    const detail = `正则[${config.pattern}]=>${config.scoreMultiplier * 100}%`;
+                    ruleDetails.set(ruleNumber, detail);
+                  }
+                } catch {
+                  // 忽略无效的正则表达式
+                }
+                break;
+              }
+              case RuleType.SHARE_DATE: {
+                const config = rule.config as ShareDateRuleConfig;
+                const magnetDate = new Date(magnet.date);
+                const ruleDate = new Date(config.date);
+                let condition = '';
+                switch (config.condition) {
+                  case 'before':
+                    condition = '<';
+                    break;
+                  case 'after':
+                    condition = '>';
+                    break;
+                  case 'equal':
+                    condition = '=';
+                    break;
+                }
+                const detail = `日期[${magnet.date}${condition}${config.date}]=>${config.scoreMultiplier * 100}%`;
+                ruleDetails.set(ruleNumber, detail);
+                break;
+              }
             }
           }
         });
@@ -148,7 +218,7 @@ export const MagnetPanel: React.FC<MagnetPanelProps> = ({
               <div className="magnet-item-info">
                 <div className="magnet-item-metrics">
                   <span className="magnet-item-size">大小: {formatFileSize(magnet.fileSize)}</span>
-                  <span className="magnet-item-score">评分: {score}</span>
+                  <span className="magnet-item-score">评分: {formatScore(score)}</span>
                   <span className="magnet-item-date">发布日期: {magnet.date}</span>
                 </div>
                 {matchedRuleNumbers.length > 0 && (
