@@ -18,7 +18,8 @@ const RuleItemHeader: React.FC<RuleItemHeaderProps> = ({
     onDelete,
     onChange,
     ruleNumber,
-    provided
+    provided,
+    rules
 }) => {
     return (
         <div 
@@ -40,7 +41,7 @@ const RuleItemHeader: React.FC<RuleItemHeaderProps> = ({
                     {getRuleTypeName(rule.type)}
                 </div>
                 
-                <RuleItemPreview rule={rule} isValid={isValid} />
+                <RuleItemPreview rule={rule} isValid={isValid} rules={rules} />
             </div>
             
             <RuleItemActions

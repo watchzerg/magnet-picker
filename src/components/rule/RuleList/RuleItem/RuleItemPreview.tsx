@@ -2,16 +2,18 @@ import React from 'react';
 import { ChevronRight } from 'lucide-react';
 import { MagnetRule } from '../../../../types/rule';
 import { generateRuleOverview } from '../../../../utils/rule/rule-overview';
+import { getRulePreview } from '../../utils/rule-utils';
 import { validateRule } from '../../utils/validation';
 
 interface RuleItemPreviewProps {
     rule: MagnetRule;
     isValid: boolean;
+    rules: MagnetRule[];
 }
 
-const RuleItemPreview: React.FC<RuleItemPreviewProps> = ({ rule, isValid }) => {
+const RuleItemPreview: React.FC<RuleItemPreviewProps> = ({ rule, isValid, rules }) => {
     const ruleOverview = isValid ? generateRuleOverview(rule) : null;
-    const { message: errorMessage } = validateRule(rule.type, rule.config);
+    const { message: errorMessage } = validateRule(rule.type, rule.config, rule, rules);
 
     return (
         <div className="text-gray-500 flex-1 flex items-center">

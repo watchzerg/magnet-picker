@@ -85,6 +85,7 @@ const RuleList: React.FC<RuleListProps> = ({ rules, initialSettings, onChange, o
                                     onToggleRule={(index) => toggleRuleEnabled(rules[index].id)}
                                     onChange={(index, rule) => updateRule(rule.id, rule.config)}
                                     onDelete={(index) => deleteRule(rules[index].id)}
+                                    rules={rules}
                                 />
                             ))}
                             {provided.placeholder}

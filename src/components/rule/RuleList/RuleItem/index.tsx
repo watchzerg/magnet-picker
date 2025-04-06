@@ -13,7 +13,8 @@ const RuleItem: React.FC<RuleItemProps> = ({
     onToggleRule,
     onDelete,
     onChange,
-    ruleNumber
+    ruleNumber,
+    rules
 }) => {
     return (
         <Draggable
@@ -38,6 +39,7 @@ const RuleItem: React.FC<RuleItemProps> = ({
                         onChange={onChange}
                         ruleNumber={ruleNumber}
                         provided={provided}
+                        rules={rules}
                     />
                     
                     {isExpanded && (

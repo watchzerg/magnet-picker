@@ -1,4 +1,5 @@
 import { MagnetRule } from '../../../../types/rule';
+import { DraggableProvided } from 'react-beautiful-dnd';
 
 export interface RuleItemProps {
     rule: MagnetRule;
@@ -10,4 +11,9 @@ export interface RuleItemProps {
     onDelete: (index: number) => void;
     onChange: (index: number, rule: MagnetRule) => void;
     ruleNumber: number;
+    rules: MagnetRule[];
+}
+
+export interface RuleItemHeaderProps extends RuleItemProps {
+    provided: DraggableProvided;
 } 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { MagnetRule } from '../types/rule';
 import { validateRule } from '../components/rule/utils/validation';
 
@@ -7,11 +7,11 @@ export const useRuleState = (rules: MagnetRule[]) => {
     const [validationResults, setValidationResults] = useState<Map<string, boolean>>(new Map());
     const [ruleNumbers, setRuleNumbers] = useState<Map<string, number>>(new Map());
 
-    // 初始化时校验所有规则
-    useEffect(() => {
+    // 更新验证结果
+    useMemo(() => {
         const newValidationResults = new Map<string, boolean>();
         rules.forEach(rule => {
-            const { isValid } = validateRule(rule.type, rule.config);
+            const { isValid } = validateRule(rule.type, rule.config, rule, rules);
             newValidationResults.set(rule.id, isValid);
             // 如果规则无效，确保它是展开的
             if (!isValid && !expandedRules.has(rule.id)) {
@@ -21,18 +21,12 @@ export const useRuleState = (rules: MagnetRule[]) => {
         setValidationResults(newValidationResults);
     }, [rules]);
 
-    // 计算规则序号
-    useEffect(() => {
+    // 更新规则编号
+    useMemo(() => {
         const newRuleNumbers = new Map<string, number>();
-        let currentNumber = 1;
-        
-        rules.forEach(rule => {
-            if (rule.enabled) {
-                newRuleNumbers.set(rule.id, currentNumber);
-                currentNumber++;
-            }
+        rules.forEach((rule, index) => {
+            newRuleNumbers.set(rule.id, index + 1);
         });
-        
         setRuleNumbers(newRuleNumbers);
     }, [rules]);
 
@@ -41,13 +35,13 @@ export const useRuleState = (rules: MagnetRule[]) => {
         if (!isValid) return; // 如果规则无效，不允许折叠
 
         setExpandedRules(prev => {
-            const next = new Set(prev);
-            if (next.has(ruleId)) {
-                next.delete(ruleId);
+            const newSet = new Set(prev);
+            if (newSet.has(ruleId)) {
+                newSet.delete(ruleId);
             } else {
-                next.add(ruleId);
+                newSet.add(ruleId);
             }
-            return next;
+            return newSet;
         });
     };
 
