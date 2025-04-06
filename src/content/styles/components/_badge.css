@@ -12,4 +12,32 @@
 .magnet-item-badge-unsaved {
   background-color: rgba(59, 130, 246, 0.1);
   color: rgb(37, 99, 235);
+}
+
+.magnet-item-rules-label {
+  color: #6b7280;
+  font-size: var(--font-size-sm);
+  margin-right: var(--spacing-sm);
+}
+
+.magnet-item-rule-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin: 0 var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: #fff;
+  background-color: #4b5563;
+  border-radius: 50%;
+  transition: var(--transition-hover);
+  cursor: pointer;
+  position: relative;
+}
+
+.magnet-item-rule-number:hover {
+  background-color: #374151;
+  transform: scale(1.1);
 } 

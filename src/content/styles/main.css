@@ -13,5 +13,5 @@
 @import './states/_saved.css';
 @import './states/_unsaved.css';
 
-/* 导入主题样式 */
-@import './themes/_dark.css'; 
+/* 导入滚动条样式 */
+@import './scrollbar.css'; 

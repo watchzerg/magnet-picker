@@ -5,6 +5,8 @@
   transition: var(--transition-base);
   cursor: pointer;
   user-select: none;
+  background-color: rgba(243, 244, 246, 1);
+  border: 1px solid rgba(229, 231, 235, 1);
 }
 
 .magnet-item:focus {
@@ -12,10 +14,16 @@
   outline-offset: -2px;
 }
 
+.magnet-item:hover {
+  background-color: rgba(243, 244, 246, 0.8);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
 .magnet-item-title {
   font-size: var(--font-size-base);
   font-weight: 500;
-  color: var(--color-text);
+  color: #1f2937;
   margin-bottom: var(--spacing-sm);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -27,6 +35,7 @@
   flex-direction: column;
   gap: var(--spacing-md);
   margin-top: var(--spacing-md);
+  color: #6b7280;
 }
 
 .magnet-item-metrics {
@@ -34,4 +43,19 @@
   flex-wrap: wrap;
   gap: var(--spacing-md);
   align-items: center;
+}
+
+.magnet-item-size,
+.magnet-item-score,
+.magnet-item-date {
+  background-color: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+.magnet-item-score {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: rgb(37, 99, 235);
 } 

@@ -12,5 +12,4 @@
 @import './animations.css';
 
 /* 主题样式 */
-@import './theme-light.css';
-@import './theme-dark.css'; 
+@import './theme-light.css'; 
