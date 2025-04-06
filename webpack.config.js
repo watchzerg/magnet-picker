@@ -1,6 +1,7 @@
 const path = require('path');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const TerserPlugin = require('terser-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
   mode: 'production',
@@ -8,6 +9,7 @@ module.exports = {
     'content/content': './src/content/index.tsx',
     'background/background': './src/background/index.ts',
     'options/options': './src/options/options.tsx',
+    'popup/popup': './src/popup/index.tsx',
   },
   output: {
     filename: '[name].js',
@@ -43,8 +45,28 @@ module.exports = {
       },
       {
         test: /\.css$/,
+        exclude: /src\/popup/,
         use: [
           'style-loader',
+          'css-loader',
+          {
+            loader: 'postcss-loader',
+            options: {
+              postcssOptions: {
+                plugins: [
+                  'tailwindcss',
+                  'autoprefixer',
+                ],
+              },
+            },
+          },
+        ],
+      },
+      {
+        test: /\.css$/,
+        include: /src\/popup/,
+        use: [
+          MiniCssExtractPlugin.loader,
           'css-loader',
           {
             loader: 'postcss-loader',
@@ -69,6 +91,9 @@ module.exports = {
     }
   },
   plugins: [
+    new MiniCssExtractPlugin({
+      filename: '[name].css',
+    }),
     new BundleAnalyzerPlugin({
       analyzerMode: process.env.ANALYZE ? 'server' : 'disabled',
       analyzerPort: 8888,

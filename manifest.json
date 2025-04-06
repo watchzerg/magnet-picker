@@ -1,4 +1,11 @@
 {
+  "manifest_version": 3,
+  "name": "磁力链接助手",
+  "version": "1.0",
+  "description": "帮助管理磁力链接的Chrome扩展",
+  "action": {
+    "default_popup": "popup.html"
+  },
   "permissions": [
     "storage",
     "tabs"
