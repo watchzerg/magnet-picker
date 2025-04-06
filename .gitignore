@@ -4,6 +4,10 @@ node_modules/
 # Build output
 dist/
 
+# Chrome extension files
+key.pem
+magnet-picker.crx
+
 # IDE and editor files
 .vscode/
 .idea/
