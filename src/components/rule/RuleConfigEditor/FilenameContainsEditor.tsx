@@ -16,9 +16,15 @@ const FilenameContainsEditor: React.FC<FilenameContainsEditorProps> = ({
     const handleAddKeyword = () => {
         if (!newKeyword.trim()) return;
         
+        const trimmedKeyword = newKeyword.trim();
+        // 检查是否已存在相同的关键字
+        if (config.keywords.includes(trimmedKeyword)) {
+            return;
+        }
+        
         onChange({
             ...config,
-            keywords: [...config.keywords, newKeyword.trim()]
+            keywords: [...config.keywords, trimmedKeyword]
         });
         setNewKeyword('');
     };

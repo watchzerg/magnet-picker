@@ -13,9 +13,15 @@ const FilenameSuffixEditor: React.FC<FilenameSuffixEditorProps> = ({ config, onC
     const handleAddSuffix = () => {
         if (!newSuffix.trim()) return;
         
+        const trimmedSuffix = newSuffix.trim();
+        // 检查是否已存在相同的后缀
+        if (config.suffixes.includes(trimmedSuffix)) {
+            return;
+        }
+        
         onChange({
             ...config,
-            suffixes: [...config.suffixes, newSuffix.trim()]
+            suffixes: [...config.suffixes, trimmedSuffix]
         });
         setNewSuffix('');
     };
