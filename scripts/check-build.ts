@@ -33,16 +33,13 @@ const filesToCheck: FileCheck[] = [
     { path: 'dist/background/background.js', required: true },
     { path: 'dist/options/options.js', required: true },
     { path: 'dist/content/content.js', required: true },
-    { path: 'dist/popup/popup.js', required: true },
     
     // HTML文件
     { path: 'dist/options/options.html', required: true },
-    { path: 'dist/popup/popup.html', required: true },
     
     // CSS文件
     { path: 'dist/options/options.css', required: true },
     { path: 'dist/content/styles/index.css', required: true },
-    { path: 'dist/popup/popup.css', required: true },
     
     // 图标文件
     { path: 'dist/assets/icon16.png', required: true },
@@ -98,15 +95,6 @@ function checkManifestReferences(manifestPath: string): boolean {
         const fullPath = path.join('dist', manifest.background.service_worker);
         if (!fs.existsSync(fullPath)) {
             console.error(`❌ Manifest引用的background脚本不存在: ${fullPath}`);
-            allFilesExist = false;
-        }
-    }
-
-    // 检查popup页面
-    if (manifest.action?.default_popup) {
-        const fullPath = path.join('dist', manifest.action.default_popup);
-        if (!fs.existsSync(fullPath)) {
-            console.error(`❌ Manifest引用的popup页面不存在: ${fullPath}`);
             allFilesExist = false;
         }
     }
