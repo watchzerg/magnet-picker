@@ -33,15 +33,15 @@
 .magnet-item-info {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-md);
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
   color: #6b7280;
 }
 
 .magnet-item-metrics {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-md);
+  flex-wrap: nowrap;
+  gap: var(--spacing-sm);
   align-items: center;
 }
 
@@ -53,6 +53,7 @@
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
+  white-space: nowrap;
 }
 
 .magnet-item-score {

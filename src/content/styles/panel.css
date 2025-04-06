@@ -5,6 +5,10 @@
   transform: translateY(-10px);
   animation: panelSlideIn 0.2s ease-out forwards;
   z-index: 10000;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 540px !important;
 }
 
 #magnet-picker-panel > div {
@@ -19,7 +23,7 @@
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 100%;
+  max-width: 540px !important;
   overflow: hidden;
   display: flex;
   flex-direction: column;

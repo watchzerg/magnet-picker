@@ -39,8 +39,8 @@ export const createPanelContainer = (): HTMLDivElement => {
   innerContainer.style.position = 'absolute';
   innerContainer.style.top = '20px';
   innerContainer.style.right = '20px';
-  innerContainer.style.width = '360px';
-  innerContainer.style.maxHeight = '60vh';
+  innerContainer.style.width = '540px';
+  innerContainer.style.maxHeight = '80vh';
   innerContainer.style.overflow = 'auto';
   innerContainer.style.pointerEvents = 'auto';
   innerContainer.style.backgroundColor = '#ffffff';
