@@ -5,7 +5,7 @@
   "scripts": {
     "build": "npm run generate-icons && webpack && npm run copy-static && npm run check-build",
     "build:prod": "cross-env NODE_ENV=production npm run build",
-    "package": "npm run build:prod && crx pack dist -o magnet-picker.crx",
+    "package": "npm run build:prod && crx pack dist -o magnet-picker-v$npm_package_version.crx",
     "watch": "webpack --watch",
     "dev": "npm run build && npm run watch",
     "generate-icons": "node scripts/generate-icons.js",

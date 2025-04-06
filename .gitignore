@@ -6,7 +6,7 @@ dist/
 
 # Chrome extension files
 key.pem
-magnet-picker.crx
+magnet-picker*.crx
 
 # IDE and editor files
 .vscode/
