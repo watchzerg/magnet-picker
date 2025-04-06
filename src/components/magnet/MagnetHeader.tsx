@@ -9,7 +9,7 @@ export const MagnetHeader: React.FC<MagnetHeaderProps> = ({ count, onClose }) =>
   return (
     <div className="magnet-panel-header">
       <h3 className="magnet-panel-title">
-        磁力链接 ({count})
+        当前页面磁链 ({count})
       </h3>
       <button
         onClick={(e) => {

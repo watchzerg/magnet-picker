@@ -47,7 +47,7 @@ export const MagnetItem: React.FC<MagnetItemProps> = ({
         </div>
         {matchedRuleNumbers.length > 0 && (
           <div className="magnet-item-rules">
-            <span className="magnet-item-rules-label">匹配规则:</span>
+            <span className="magnet-item-rules-label">匹配详情:</span>
             <div className="magnet-item-rules-numbers">
               {matchedRuleNumbers.map(number => (
                 <div 
