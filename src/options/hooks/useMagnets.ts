@@ -5,7 +5,6 @@ import { getMagnetsFromStorage, sortMagnetsBySize } from '../../utils/magnet';
 export const useMagnets = () => {
     const [magnets, setMagnets] = useState<MagnetInfo[]>([]);
     const [loading, setLoading] = useState(true);
-    const [autoRefresh, setAutoRefresh] = useState(false);
 
     const loadMagnets = async () => {
         try {
@@ -35,27 +34,9 @@ export const useMagnets = () => {
         };
     }, []);
 
-    useEffect(() => {
-        let timer: NodeJS.Timeout;
-        
-        if (autoRefresh) {
-            timer = setInterval(() => {
-                loadMagnets();
-            }, 5000);
-        }
-
-        return () => {
-            if (timer) {
-                clearInterval(timer);
-            }
-        };
-    }, [autoRefresh]);
-
     return {
         magnets,
         loading,
-        autoRefresh,
-        setAutoRefresh,
         loadMagnets
     };
 }; 

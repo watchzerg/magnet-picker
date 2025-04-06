@@ -19,13 +19,13 @@ export const MagnetListHeader: React.FC<MagnetListHeaderProps> = ({
                     onClick={onExportMagnets}
                     className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
                 >
-                    导出Magnet
+                    导出Magnet链接
                 </button>
                 <button
                     onClick={onExportAll}
                     className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                 >
-                    导出所有列
+                    导出所有信息
                 </button>
                 <button
                     onClick={() => {

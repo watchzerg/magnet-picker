@@ -6,7 +6,7 @@ const ITEMS_PER_PAGE = 20;
 
 export const MagnetManagementTab: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
-    const { magnets, loading, autoRefresh, setAutoRefresh } = useMagnets();
+    const { magnets, loading } = useMagnets();
 
     if (loading) {
         return (
@@ -18,17 +18,6 @@ export const MagnetManagementTab: React.FC = () => {
         <div>
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">磁力链接管理</h2>
-                <div className="flex items-center gap-4">
-                    <label className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            checked={autoRefresh}
-                            onChange={(e) => setAutoRefresh(e.target.checked)}
-                            className="form-checkbox h-5 w-5 text-blue-600"
-                        />
-                        <span>自动刷新</span>
-                    </label>
-                </div>
             </div>
             <MagnetList
                 magnets={magnets}
